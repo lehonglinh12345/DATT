@@ -1,0 +1,353 @@
+﻿:root {
+    --contact-widget-bg: #0f4c81;
+    --contact-widget-bg-soft: rgba(15, 76, 129, 0.88);
+    --contact-widget-bg-alt: #0b6623;
+    --contact-widget-border: rgba(255, 255, 255, 0.18);
+    --contact-widget-text: #6fb98b;
+    --contact-widget-shadow: 0 18px 32px rgba(0, 0, 0, 0.24);
+    --contact-widget-glow: rgba(11, 102, 35, 0.28);
+    --contact-widget-zalo: #0068ff;
+    --contact-widget-transition: 220ms ease;
+}
+
+/* Floating widget wrapper */
+.floating-contact-widget {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 2147483647;
+    display: grid;
+    gap: 0.9rem;
+    align-items: end;
+    pointer-events: none;
+    max-width: 280px;
+}
+
+/* Action container hidden by default */
+.floating-widget-actions {
+    display: grid;
+    gap: 0.75rem;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(14px);
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-height var(--contact-widget-transition), opacity var(--contact-widget-transition), transform var(--contact-widget-transition);
+}
+
+.floating-contact-widget.open .floating-widget-actions {
+    max-height: 260px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Main floating button */
+.floating-widget-toggle {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 1px solid var(--contact-widget-border);
+    background: radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 45%), linear-gradient(180deg, var(--contact-widget-bg), var(--contact-widget-bg-alt));
+    color: var(--contact-widget-text);
+    box-shadow: var(--contact-widget-shadow), 0 0 0 6px rgba(15, 76, 129, 0.08);
+    cursor: pointer;
+    transition: transform var(--contact-widget-transition), box-shadow var(--contact-widget-transition), background var(--contact-widget-transition), border-color var(--contact-widget-transition);
+    outline: none;
+    position: relative;
+}
+
+.floating-widget-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(0, 166, 255, 0.24);
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.floating-widget-toggle:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+    border-color: rgba(212, 175, 55, 0.9);
+}
+
+.floating-widget-toggle:hover::after {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.floating-widget-toggle .widget-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 1.2rem;
+}
+
+/* Pulse animation for the main button */
+@keyframes widget-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+}
+
+.floating-widget-toggle {
+    animation: widget-pulse 2.8s ease-in-out infinite;
+}
+
+.floating-contact-widget.open .floating-widget-toggle .widget-icon {
+    transform: rotate(180deg);
+    transition: transform 260ms ease;
+}
+
+/* Contact actions */
+.widget-action {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    width: 100%;
+    min-height: 56px;
+    padding: 0.85rem 1rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--contact-widget-text);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+    opacity: 0;
+    transform: translateY(26px);
+    pointer-events: auto;
+}
+
+.floating-contact-widget.open .widget-action {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.widget-action:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.18);
+}
+
+.widget-action .action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--contact-widget-text);
+    position: relative;
+}
+
+.widget-action .action-label {
+    font-size: 0.96rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Tooltip for desktop only */
+.tooltip {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 12px);
+    transform: translateY(-50%);
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(8, 22, 47, 0.95);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+    white-space: nowrap;
+}
+
+.widget-action:hover .tooltip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(4px);
+}
+
+/* Phone action style */
+.widget-action-call {
+    background: linear-gradient(180deg, rgba(15, 76, 129, 0.96), rgba(11, 102, 35, 0.96));
+}
+
+.widget-action-call::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
+    animation: phone-wave 1.6s ease-in-out infinite;
+}
+
+@keyframes phone-wave {
+    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.24); }
+    50% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+/* Zalo action style */
+.widget-action-zalo {
+    background: linear-gradient(180deg, rgba(0, 104, 255, 0.96), rgba(0, 83, 234, 0.96));
+}
+
+.widget-action-zalo .action-icon {
+    background: linear-gradient(135deg, rgba(0, 184, 255, 0.95), rgba(0, 104, 255, 0.98));
+    color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    animation: zalo-glow 2.6s ease-in-out infinite;
+}
+
+.widget-action-zalo .action-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.widget-action-zalo .action-icon::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    opacity: 0;
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.widget-action-zalo:hover .action-icon::after {
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+@keyframes zalo-glow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(0, 104, 255, 0.18); }
+    50% { box-shadow: 0 0 18px 6px rgba(0, 104, 255, 0.18); }
+}
+
+.widget-action-zalo::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.18);
+    opacity: 0;
+    animation: zalo-ripple 2.8s ease-in-out infinite;
+}
+
+.widget-action-zalo.zalo-rumble {
+    animation: zalo-shake 0.9s ease-in-out;
+}
+
+.widget-action-zalo.zalo-rumble .action-icon {
+    transform: translateY(-1px);
+}
+
+@keyframes zalo-ripple {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.35; }
+    50% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+
+@keyframes zalo-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-2px); }
+    40% { transform: translateX(2px); }
+    60% { transform: translateX(-1px); }
+    80% { transform: translateX(1px); }
+}
+
+@keyframes action-bounce {
+    0% { opacity: 0; transform: translateY(26px); }
+    60% { opacity: 1; transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+}
+
+.floating-contact-widget.open .widget-action {
+    animation: action-bounce 0.28s ease forwards;
+}
+
+.widget-action-call { animation-delay: 0.05s; }
+.widget-action-zalo { animation-delay: 0.11s; }
+
+/* Desktop layout */
+@media screen and (min-width: 860px) {
+    .floating-contact-widget {
+        left: 24px;
+        bottom: 24px;
+        max-width: 240px;
+    }
+    .widget-action .tooltip {
+        display: block;
+    }
+}
+
+/* Mobile layout */
+@media screen and (max-width: 859px) {
+    .floating-contact-widget {
+        left: 16px;
+        bottom: 16px;
+        max-width: 100%;
+    }
+
+    .floating-widget-toggle {
+        width: 52px;
+        height: 52px;
+    }
+
+    .floating-widget-toggle .widget-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 1.1rem;
+    }
+
+    .widget-action {
+        min-height: 52px;
+        padding: 0.75rem 0.95rem;
+    }
+
+    .widget-action .action-label {
+        display: none;
+    }
+
+    .tooltip {
+        display: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --contact-widget-bg: #0c3254;
+        --contact-widget-bg-alt: #0b4b25;
+        --contact-widget-border: rgba(255, 255, 255, 0.2);
+        --contact-widget-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+    .floating-widget-toggle,
+    .widget-action {
+        background: rgba(18, 31, 48, 0.96);
+        box-shadow: 0 18px 32px rgba(0, 0, 0, 0.4);
+    }
+    .floating-widget-toggle::after {
+        box-shadow: 0 0 0 0 rgba(0, 104, 255, 0.18);
+    }
+}

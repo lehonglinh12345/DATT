@@ -1,0 +1,243 @@
+/* =========================================
+   CONTACT PAGE RESPONSIVE ONLY
+========================================= */
+
+/* ---------- Desktop ---------- */
+
+.contact-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:2rem;
+    align-items:start;
+}
+
+.contact-info-panel,
+.contact-form-panel{
+    width:100%;
+    overflow:hidden;
+}
+
+.contact-info-list{
+    display:flex;
+    flex-direction:column;
+    gap:1.25rem;
+}
+
+.contact-info-item{
+    display:flex;
+    align-items:flex-start;
+    gap:1rem;
+}
+
+.contact-info-icon{
+    flex-shrink:0;
+}
+
+.contact-info-text{
+    flex:1;
+    min-width:0;
+}
+
+.contact-info-text p,
+.contact-info-text a{
+    word-break:break-word;
+}
+
+.form-control{
+    width:100%;
+    max-width:100%;
+}
+
+textarea.form-control{
+    min-height:160px;
+    resize:vertical;
+}
+
+.map-container{
+    width:100%;
+    overflow:hidden;
+}
+
+.map-container iframe{
+    width:100%;
+    height:500px;
+    border:0;
+    display:block;
+}
+
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 992px){
+
+    .contact-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 768px){
+
+    .section{
+        padding:60px 0;
+    }
+
+    .about-hero{
+        padding:100px 0 70px;
+    }
+
+    .about-hero h1{
+        font-size:2rem;
+        line-height:1.3;
+    }
+
+    .breadcrumbs{
+        flex-wrap:wrap;
+        gap:0.5rem;
+    }
+
+    .contact-info-panel,
+    .contact-form-panel{
+        width:100%;
+    }
+
+    /* Mobile toggle for contact info panel */
+    .contact-info-toggle{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        background-color: var(--color-secondary);
+        color: var(--color-white);
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: var(--transition-normal);
+        margin-bottom: 1rem;
+    }
+
+    .contact-info-toggle:hover {
+        background-color: rgba(11, 102, 37, 0.9);
+        transform: translateY(-2px);
+    }
+
+    .contact-info-toggle i {
+        transition: transform 0.3s ease;
+        font-size: 0.9rem;
+        margin-left: 0.75rem;
+    }
+
+    .contact-info-toggle.open i {
+        transform: rotate(180deg);
+    }
+
+    .contact-info-content {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+
+    .contact-info-content.open {
+        max-height: 1000px;
+        opacity: 1;
+    }
+
+    .contact-info-item{
+        gap:0.85rem;
+    }
+
+    .contact-info-text h4{
+        line-height:1.5;
+    }
+
+    .contact-info-text p,
+    .contact-info-text a{
+        line-height:1.7;
+        font-size:0.95rem;
+    }
+
+    /* form 2 cột xuống 1 cột */
+    .form-group[style]{
+        display:flex !important;
+        flex-direction:column;
+        gap:1rem !important;
+    }
+
+    .form-control{
+        font-size:0.95rem;
+    }
+
+    textarea.form-control{
+        min-height:140px;
+    }
+
+    .btn{
+        width:100%;
+    }
+
+    .map-container iframe{
+        height:380px;
+    }
+
+}
+
+
+/* ---------- Small Mobile ---------- */
+
+@media (max-width: 480px){
+
+    .section{
+        padding:50px 0;
+    }
+
+    .about-hero{
+        padding:90px 0 60px;
+    }
+
+    .about-hero h1{
+        font-size:1.7rem;
+    }
+
+    .contact-info-item{
+        align-items:flex-start;
+    }
+
+    .contact-info-icon{
+        width:42px;
+        height:42px;
+        min-width:42px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .contact-info-text h4{
+        font-size:1rem;
+    }
+
+    .contact-info-text p,
+    .contact-info-text a{
+        font-size:0.9rem;
+    }
+
+    .form-control{
+        padding:0.9rem 1rem;
+        font-size:0.92rem;
+    }
+
+    textarea.form-control{
+        min-height:130px;
+    }
+
+    .map-container iframe{
+        height:300px;
+    }
+
+}
