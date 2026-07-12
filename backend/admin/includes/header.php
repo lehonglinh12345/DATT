@@ -23,7 +23,15 @@ if ($new_quote_res) {
     $new_quote_count = (int)$row['cnt'];
 }
 
-$total_unread_notifications = $new_msg_count + $new_quote_count;
+// Fetch pending user submitted articles count
+$new_article_res = db_query("SELECT COUNT(*) as cnt FROM news_articles WHERE status = 'pending'");
+$new_article_count = 0;
+if ($new_article_res) {
+    $row = $new_article_res->fetch_assoc();
+    $new_article_count = (int)$row['cnt'];
+}
+
+$total_unread_notifications = $new_msg_count + $new_quote_count + $new_article_count;
 
 // Fetch latest unread notifications (up to 5 items)
 $notifications_list = [];
@@ -36,6 +44,12 @@ if ($notif_res_msg) {
 $notif_res_quote = db_query("SELECT id, name, created_at, 'quote' as type, product_name FROM quote_requests WHERE status = 'new' ORDER BY id DESC LIMIT 5");
 if ($notif_res_quote) {
     while ($r = $notif_res_quote->fetch_assoc()) {
+        $notifications_list[] = $r;
+    }
+}
+$notif_res_art = db_query("SELECT id, title as name, created_at, 'article' as type FROM news_articles WHERE status = 'pending' ORDER BY id DESC LIMIT 5");
+if ($notif_res_art) {
+    while ($r = $notif_res_art->fetch_assoc()) {
         $notifications_list[] = $r;
     }
 }
@@ -87,9 +101,14 @@ $notifications_list = array_slice($notifications_list, 0, 5);
                         </a>
                     </li>
                     <li class="admin-nav-item <?= $active_tab === 'news' ? 'active' : '' ?>">
-                        <a href="news.php">
-                            <i class="fa-solid fa-newspaper"></i>
-                            <span>Tin Tức</span>
+                        <a href="news.php" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-newspaper"></i>
+                                <span>Tin Tức</span>
+                            </span>
+                            <?php if ($new_article_count > 0): ?>
+                                <span class="badge-msg-count" style="background-color: #f59e0b; color: white; border-radius: 50px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; height: 18px; min-width: 18px; line-height: 1;"><?= $new_article_count ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
                     <li class="admin-nav-item <?= $active_tab === 'techniques' ? 'active' : '' ?>">
@@ -171,14 +190,32 @@ $notifications_list = array_slice($notifications_list, 0, 5);
                             <div class="admin-notif-body" style="max-height: 280px; overflow-y: auto;">
                                 <?php if (!empty($notifications_list)): ?>
                                     <?php foreach ($notifications_list as $notif): ?>
-                                        <a href="<?= $notif['type'] === 'quote' ? 'quotes.php?action=view&id='.$notif['id'] : 'messages.php?action=view&id='.$notif['id'] ?>" class="admin-notif-item" style="display: flex; gap: 0.75rem; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--color-admin-border); font-size: 0.82rem; color: var(--color-admin-text-dark); transition: background-color 0.2s ease; text-decoration: none; align-items: flex-start;">
-                                            <div class="admin-notif-icon <?= $notif['type'] === 'quote' ? 'icon-quote' : 'icon-msg' ?>" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; <?= $notif['type'] === 'quote' ? 'background-color: rgba(16, 185, 129, 0.1); color: #10b981;' : 'background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;' ?>">
-                                                <i class="fa-solid <?= $notif['type'] === 'quote' ? 'fa-file-invoice-dollar' : 'fa-envelope' ?>"></i>
+                                        <?php
+                                        $notifUrl = 'messages.php?action=view&id='.$notif['id'];
+                                        $bgColor = 'background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;';
+                                        $iconClass = 'fa-envelope';
+                                        $descText = 'Gửi tin nhắn liên hệ mới';
+                                        
+                                        if ($notif['type'] === 'quote') {
+                                            $notifUrl = 'quotes.php?action=view&id='.$notif['id'];
+                                            $bgColor = 'background-color: rgba(16, 185, 129, 0.1); color: #10b981;';
+                                            $iconClass = 'fa-file-invoice-dollar';
+                                            $descText = 'Yêu cầu báo giá: ' . h($notif['product_name'] ?? '');
+                                        } elseif ($notif['type'] === 'article') {
+                                            $notifUrl = 'news.php?action=edit&id='.$notif['id'];
+                                            $bgColor = 'background-color: rgba(245, 158, 11, 0.1); color: #f59e0b;';
+                                            $iconClass = 'fa-newspaper';
+                                            $descText = 'Đóng góp bài viết mới chờ duyệt';
+                                        }
+                                        ?>
+                                        <a href="<?= $notifUrl ?>" class="admin-notif-item" style="display: flex; gap: 0.75rem; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--color-admin-border); font-size: 0.82rem; color: var(--color-admin-text-dark); transition: background-color 0.2s ease; text-decoration: none; align-items: flex-start;">
+                                            <div class="admin-notif-icon" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; <?= $bgColor ?>">
+                                                <i class="fa-solid <?= $iconClass ?>"></i>
                                             </div>
                                             <div class="admin-notif-content" style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
                                                 <span class="admin-notif-title" style="font-weight: 600; color: #1e293b;"><?= h($notif['name']) ?></span>
                                                 <span class="admin-notif-desc" style="color: var(--color-admin-text-muted); font-size: 0.78rem;">
-                                                    <?= $notif['type'] === 'quote' ? 'Yêu cầu báo giá: ' . h($notif['product_name']) : 'Gửi tin nhắn liên hệ mới' ?>
+                                                    <?= $descText ?>
                                                 </span>
                                                 <span class="admin-notif-time" style="font-size: 0.72rem; color: var(--color-admin-text-muted);"><i class="fa-regular fa-clock" style="margin-right: 3px;"></i><?= date('H:i d/m/Y', strtotime($notif['created_at'])) ?></span>
                                             </div>

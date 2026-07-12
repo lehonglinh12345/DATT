@@ -72,6 +72,23 @@ if ($action === 'upload_image' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // --------------------------------------------------------------------------
+// Approve Article
+// --------------------------------------------------------------------------
+if ($action === 'approve' && $id > 0) {
+    if (!isset($_GET['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_GET['csrf_token'])) {
+        $error = "Yêu cầu không hợp lệ (Lỗi CSRF token).";
+    } else {
+        $update = db_query("UPDATE news_articles SET status = 'published', published_at = NOW() WHERE id = ? AND section = ?", "is", [$id, $section]);
+        if ($update) {
+            $success = "Phê duyệt và xuất bản bài viết thành công!";
+        } else {
+            $error = "Không thể phê duyệt bài viết. Có lỗi xảy ra.";
+        }
+    }
+    $action = 'list';
+}
+
+// --------------------------------------------------------------------------
 // Delete Article
 // --------------------------------------------------------------------------
 if ($action === 'delete' && $id > 0) {
@@ -198,17 +215,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
 }
 
 // --------------------------------------------------------------------------
-// Form Rendering (Add / Edit)
-// --------------------------------------------------------------------------
 if ($action === 'add' || $action === 'edit'):
     $article = [
         'title' => '', 'slug' => '', 'category' => 'Tin nhà nông', 
         'excerpt' => '', 'image' => '', 'content' => '', 'status' => 'published'
     ];
+    $author_display = 'Quản trị viên';
     if ($action === 'edit' && $id > 0) {
-        $res = db_query("SELECT * FROM news_articles WHERE id = ? AND section = ?", "is", [$id, $section]);
+        $res = db_query("SELECT n.*, u.full_name, u.username FROM news_articles n LEFT JOIN users u ON n.user_id = u.id WHERE n.id = ? AND n.section = ?", "is", [$id, $section]);
         if ($res && $res->num_rows > 0) {
             $article = $res->fetch_assoc();
+            if (!empty($article['full_name'])) {
+                $author_display = $article['full_name'];
+            } elseif (!empty($article['username'])) {
+                $author_display = $article['username'];
+            }
         } else {
             $error = "Không tìm thấy bài viết.";
             $action = 'list';
@@ -248,9 +269,14 @@ if ($action === 'add' || $action === 'edit'):
                         <input type="text" id="category" name="category" class="form-control" placeholder="Ví dụ: Tin nhà nông, Thị trường" value="<?= h($article['category']) ?>">
                     </div>
                     <div class="form-group">
+                        <label>Người viết / Tác giả</label>
+                        <input type="text" class="form-control" readonly disabled value="<?= h($author_display) ?>">
+                    </div>
+                    <div class="form-group">
                         <label for="status">Trạng thái</label>
                         <select id="status" name="status" class="form-control">
                             <option value="published" <?= $article['status'] === 'published' ? 'selected' : '' ?>>Xuất bản (Published)</option>
+                            <option value="pending" <?= $article['status'] === 'pending' ? 'selected' : '' ?>>Chờ duyệt (Pending)</option>
                             <option value="draft" <?= $article['status'] === 'draft' ? 'selected' : '' ?>>Bản nháp (Draft)</option>
                         </select>
                     </div>
@@ -305,13 +331,16 @@ if ($action === 'list'):
     
     // Build query with search
     $countSQL = "SELECT COUNT(*) as total FROM news_articles WHERE section = ?";
-    $listSQL = "SELECT *, DATE_FORMAT(published_at, '%d/%m/%Y') AS date FROM news_articles WHERE section = ?";
+    $listSQL = "SELECT n.*, DATE_FORMAT(n.published_at, '%d/%m/%Y') AS date, u.full_name AS author_name, u.username AS author_username 
+                FROM news_articles n 
+                LEFT JOIN users u ON n.user_id = u.id 
+                WHERE n.section = ?";
     $types = "s";
     $params = [$section];
 
     if (!empty($search)) {
         $countSQL .= " AND (title LIKE ? OR excerpt LIKE ?)";
-        $listSQL .= " AND (title LIKE ? OR excerpt LIKE ?)";
+        $listSQL .= " AND (n.title LIKE ? OR n.excerpt LIKE ?)";
         $search_wildcard = "%$search%";
         $types .= "ss";
         $params[] = $search_wildcard;
@@ -332,7 +361,7 @@ if ($action === 'list'):
     $offset = ($current_page - 1) * $per_page;
 
     // Execute paginated listing
-    $listSQL .= " ORDER BY id DESC LIMIT ? OFFSET ?";
+    $listSQL .= " ORDER BY n.id DESC LIMIT ? OFFSET ?";
     $types .= "ii";
     $params[] = $per_page;
     $params[] = $offset;
@@ -390,12 +419,17 @@ if ($action === 'list'):
                                     </td>
                                     <td>
                                         <div style="font-weight: 600; font-size: 0.95rem; line-height: 1.4;"><?= h($art['title']) ?></div>
-                                        <div style="font-size: 0.8rem; color: var(--color-admin-text-muted); margin-top: 2px;"><code>slug: <?= h($art['slug']) ?></code></div>
+                                        <div style="font-size: 0.8rem; color: var(--color-admin-text-muted); margin-top: 2px;">
+                                            <code>slug: <?= h($art['slug']) ?></code>
+                                            | Người viết: <strong><?= !empty($art['author_name']) ? h($art['author_name']) : (!empty($art['author_username']) ? h($art['author_username']) : 'Quản trị viên') ?></strong>
+                                        </div>
                                     </td>
                                     <td><?= h($art['category'] ?: '-') ?></td>
                                     <td>
                                         <?php if ($art['status'] === 'published'): ?>
                                             <span class="badge badge-customer">Công khai</span>
+                                        <?php elseif ($art['status'] === 'pending'): ?>
+                                            <span class="badge badge-closed" style="background-color: #f59e0b; color: white;">Chờ duyệt</span>
                                         <?php else: ?>
                                             <span class="badge badge-closed">Bản nháp</span>
                                         <?php endif; ?>
@@ -403,6 +437,11 @@ if ($action === 'list'):
                                     <td><?= h($art['date']) ?></td>
                                     <td>
                                         <div class="actions-cell" style="justify-content: center;">
+                                            <?php if ($art['status'] === 'pending'): ?>
+                                                <a href="news.php?action=approve&id=<?= $art['id'] ?>&csrf_token=<?= $_SESSION['csrf_token'] ?>" class="btn-icon-only btn-view" title="Phê duyệt & Xuất bản" style="background-color: #10b981; color: white;" onclick="return confirm('Bạn có chắc chắn muốn phê duyệt và xuất bản bài viết này?');">
+                                                    <i class="fa-solid fa-circle-check"></i>
+                                                </a>
+                                            <?php endif; ?>
                                             <a href="news.php?article=<?= $art['slug'] ?>" class="btn-icon-only btn-view" target="_blank" title="Xem ngoài web">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                             </a>

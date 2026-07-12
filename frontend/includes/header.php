@@ -110,6 +110,9 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
                                 <i class="fa-solid fa-chart-line"></i> Trang Quản Trị
                             </a>
                         <?php endif; ?>
+                        <a href="write-news.php" class="dropdown-item">
+                            <i class="fa-solid fa-pen-to-square"></i> Đóng Góp Tin Tức
+                        </a>
                         <a href="logout.php" class="dropdown-item logout-link">
                             <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
                         </a>
@@ -198,6 +201,9 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
                     <i class="fa-solid fa-chart-line"></i> Trang Quản Trị
                 </a>
             <?php endif; ?>
+            <a href="write-news.php" class="btn btn-outline" style="margin-bottom:.5rem;justify-content:center;width:100%;border-radius:8px;padding:0.6rem;">
+                <i class="fa-solid fa-pen-to-square"></i> Đóng Góp Tin Tức
+            </a>
             <a href="logout.php" class="btn btn-outline" style="margin-bottom:.5rem;justify-content:center;width:100%;border-radius:8px;padding:0.6rem;border-color:#ef4444;color:#ef4444;">
                 <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
             </a>

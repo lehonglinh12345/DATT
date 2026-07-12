@@ -50,6 +50,23 @@ try {
         $database->query("INSERT IGNORE INTO users (username, email, password, full_name, role) VALUES ('admin', 'admin@ngocanhduong.com', '$adminPass', 'Quản trị viên', 'admin')");
         $database->query("INSERT IGNORE INTO users (username, email, password, full_name, role) VALUES ('customer', 'customer@gmail.com', '$custPass', 'Khách hàng mẫu', 'customer')");
     }
+
+    // Tự động kiểm tra và nâng cấp cấu trúc bảng `news_articles` để hỗ trợ bài viết người dùng
+    $col_check = $database->query("SHOW COLUMNS FROM `news_articles` LIKE 'user_id'");
+    if ($col_check && $col_check->num_rows === 0) {
+        // Thêm cột user_id làm khóa ngoại liên kết tới bảng users
+        $database->query("ALTER TABLE `news_articles` ADD COLUMN `user_id` INT UNSIGNED NULL DEFAULT NULL AFTER `id`");
+        $database->query("ALTER TABLE `news_articles` ADD CONSTRAINT `fk_news_articles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE");
+    }
+
+    $status_check = $database->query("SHOW COLUMNS FROM `news_articles` LIKE 'status'");
+    if ($status_check) {
+        $row = $status_check->fetch_assoc();
+        if (strpos($row['Type'], 'pending') === false) {
+            // Thêm trạng thái 'pending' vào enum status
+            $database->query("ALTER TABLE `news_articles` MODIFY `status` ENUM('draft', 'pending', 'published') NOT NULL DEFAULT 'published'");
+        }
+    }
 } catch (mysqli_sql_exception $e) {
     // Let database.php connection errors be handled natively
 }
