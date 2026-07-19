@@ -193,6 +193,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
                     $insert = db_query($insertSQL, "sssssssss", [$slug, $title, $section, $category, $excerpt, $image_path, $title, $content, $status]);
                     if ($insert) {
                         $success = "Thêm bài viết tin tức mới thành công!";
+                        if ($status === 'published') {
+                            require_once __DIR__ . '/../notification_helper.php';
+                            send_global_notification("Bài viết mới", "Một bài viết tin tức mới vừa được đăng: " . $title, "../frontend/news.php");
+                        }
                         echo '<script>setTimeout(function(){ window.location.href = "news.php"; }, 1500);</script>';
                         $action = 'list';
                     } else {

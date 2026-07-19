@@ -72,6 +72,16 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
     </div>
 </div>
 
+<!-- PHONE PROMPT BANNER -->
+<?php if (auth_is_logged_in() && empty(auth_get_user()['phone'])): ?>
+<div class="phone-prompt-banner" style="background: #fff3cd; color: #856404; padding: 0.5rem; text-align: center; font-size: 0.9rem; font-weight: 500; border-bottom: 1px solid #ffeeba;">
+    <div class="container">
+        <i class="fa-solid fa-bell" style="color: #d39e00;"></i> 
+        Bạn chưa cập nhật Số điện thoại. Vui lòng <a href="profile.php" style="color: #0b6623; text-decoration: underline; font-weight: 700;">cập nhật ngay</a> để Admin liên hệ báo giá.
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- MAIN HEADER -->
 <header class="main-header" id="mainHeader">
     <div class="container header-container">
@@ -98,6 +108,23 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
             <?php if (auth_is_logged_in()): 
                 $curr_user = auth_get_user();
             ?>
+                <!-- NOTIFICATION BELL -->
+                <div class="user-menu-wrapper notif-wrapper" style="margin-right: 15px;">
+                    <button class="user-menu-btn" id="notifBtn" aria-label="Thông báo" style="position: relative;">
+                        <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #475569;"></i>
+                        <span class="badge" id="notifBadge" style="display: none; position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; font-weight: bold; line-height: 18px; text-align: center;">0</span>
+                    </button>
+                    <div class="user-dropdown" id="notifDropdown" style="width: 320px; right: -50px; padding: 0;">
+                        <div style="padding: 1rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px 12px 0 0;">
+                            <strong style="color: var(--color-dark);">Thông báo</strong>
+                            <button id="markAllReadBtn" style="background: none; border: none; color: var(--color-primary); font-size: 0.8rem; cursor: pointer; font-weight: 600;">Đánh dấu đã đọc</button>
+                        </div>
+                        <div id="notifList" style="max-height: 350px; overflow-y: auto; padding: 0;">
+                            <div style="padding: 1.5rem; text-align: center; color: var(--color-dark-muted); font-size: 0.9rem;">Đang tải...</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="user-menu-wrapper">
                     <button class="user-menu-btn" id="userMenuBtn" aria-label="Menu người dùng">
                         <i class="fa-solid fa-circle-user" style="font-size: 1.1rem;"></i>
@@ -105,6 +132,9 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
                         <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; opacity: 0.7;"></i>
                     </button>
                     <div class="user-dropdown" id="userDropdown">
+                        <a href="profile.php" class="dropdown-item">
+                            <i class="fa-solid fa-id-badge"></i> Trang Cá Nhân
+                        </a>
                         <?php if ($curr_user['role'] === 'admin'): ?>
                             <a href="../backend/admin/dashboard.php" class="dropdown-item">
                                 <i class="fa-solid fa-chart-line"></i> Trang Quản Trị
@@ -119,13 +149,121 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
                     </div>
                     <script>
                         (function(){
-                            var btn = document.getElementById('userMenuBtn');
-                            var dropdown = document.getElementById('userDropdown');
-                            if (btn && dropdown) {
-                                btn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open') ? 'true' : 'false'); });
-                                document.addEventListener('click', function(e){ if (!btn.contains(e.target) && !dropdown.contains(e.target)) { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
-                                document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
+                            // User Dropdown
+                            var userBtn = document.getElementById('userMenuBtn');
+                            var userDropdown = document.getElementById('userDropdown');
+                            
+                            // Notif Dropdown
+                            var notifBtn = document.getElementById('notifBtn');
+                            var notifDropdown = document.getElementById('notifDropdown');
+
+                            function closeAll() {
+                                if(userDropdown) userDropdown.classList.remove('open');
+                                if(notifDropdown) notifDropdown.classList.remove('open');
                             }
+
+                            if (userBtn && userDropdown) {
+                                userBtn.addEventListener('click', function(e){ 
+                                    e.preventDefault(); e.stopPropagation(); 
+                                    var wasOpen = userDropdown.classList.contains('open');
+                                    closeAll();
+                                    if(!wasOpen) userDropdown.classList.add('open'); 
+                                });
+                            }
+                            if (notifBtn && notifDropdown) {
+                                notifBtn.addEventListener('click', function(e){ 
+                                    e.preventDefault(); e.stopPropagation(); 
+                                    var wasOpen = notifDropdown.classList.contains('open');
+                                    closeAll();
+                                    if(!wasOpen) {
+                                        notifDropdown.classList.add('open'); 
+                                        loadNotifications(); // Reload when open
+                                    }
+                                });
+                            }
+                            
+                            document.addEventListener('click', function(e){ 
+                                if (userBtn && !userBtn.contains(e.target) && !userDropdown.contains(e.target) && 
+                                    notifBtn && !notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) { 
+                                    closeAll();
+                                } 
+                            });
+                            document.addEventListener('keydown', function(e){ 
+                                if (e.key === 'Escape') closeAll(); 
+                            });
+
+                            // Notification logic
+                            var notifList = document.getElementById('notifList');
+                            var notifBadge = document.getElementById('notifBadge');
+                            var markAllBtn = document.getElementById('markAllReadBtn');
+
+                            function loadNotifications() {
+                                if(!notifList) return;
+                                fetch('../backend/api_notifications.php?action=get')
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if(data.success) {
+                                            renderNotifications(data.data.notifications);
+                                            updateBadge(data.data.unread_count);
+                                        }
+                                    });
+                            }
+
+                            function updateBadge(count) {
+                                if (count > 0) {
+                                    notifBadge.style.display = 'block';
+                                    notifBadge.innerText = count > 99 ? '99+' : count;
+                                } else {
+                                    notifBadge.style.display = 'none';
+                                }
+                            }
+
+                            function renderNotifications(items) {
+                                if(items.length === 0) {
+                                    notifList.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--color-dark-muted); font-size: 0.9rem;">Bạn không có thông báo nào.</div>';
+                                    return;
+                                }
+                                let html = '';
+                                items.forEach(item => {
+                                    let bg = item.is_read == 0 ? '#f0fdf4' : '#ffffff';
+                                    let fw = item.is_read == 0 ? '700' : '500';
+                                    let href = item.link ? item.link : '#';
+                                    html += `
+                                        <a href="${href}" onclick="markRead(${item.id}, event, '${href}')" style="display: block; padding: 1rem; border-bottom: 1px solid var(--color-border); background: ${bg}; text-decoration: none; transition: background 0.2s;">
+                                            <div style="font-weight: ${fw}; color: var(--color-dark); font-size: 0.95rem; margin-bottom: 0.25rem;">${item.title}</div>
+                                            <div style="color: var(--color-dark-muted); font-size: 0.85rem; line-height: 1.4; margin-bottom: 0.4rem;">${item.message}</div>
+                                            <div style="color: #94a3b8; font-size: 0.75rem;">${new Date(item.created_at).toLocaleString('vi-VN')}</div>
+                                        </a>
+                                    `;
+                                });
+                                notifList.innerHTML = html;
+                            }
+
+                            window.markRead = function(id, e, href) {
+                                e.preventDefault();
+                                const formData = new FormData();
+                                formData.append('action', 'mark_read');
+                                formData.append('notification_id', id);
+                                fetch('../backend/api_notifications.php', { method: 'POST', body: formData })
+                                    .then(() => {
+                                        if (href && href !== '#') window.location.href = href;
+                                        else loadNotifications();
+                                    });
+                            }
+
+                            if (markAllBtn) {
+                                markAllBtn.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const formData = new FormData();
+                                    formData.append('action', 'mark_all_read');
+                                    fetch('../backend/api_notifications.php', { method: 'POST', body: formData })
+                                        .then(() => loadNotifications());
+                                });
+                            }
+
+                            // Initial load
+                            if(notifBtn) loadNotifications();
                         })();
                     </script>
                 </div>

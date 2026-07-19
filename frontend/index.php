@@ -159,6 +159,40 @@ include 'includes/header.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Product 5 -->
+            <div class="product-card">
+                <div class="prod-img-wrapper">
+                    <img src="images/bio-prep.jpg" alt="Chế phẩm trừ sâu sinh học Neem Oil" class="prod-img" loading="lazy">
+                    <span class="prod-badge badge-bio">Côn Trùng</span>
+                </div>
+                <div class="prod-body">
+                    <span class="prod-cat">PHÒNG TRỪ CÔN TRÙNG, ỐC HẠI</span>
+                    <h3 class="prod-title"><a href="product-detail.php?id=che-pham-tru-sau-sinh-hoc">Chế phẩm trừ sâu sinh học Neem Oil</a></h3>
+                    <p class="prod-origin">Xuất xứ: <strong>Ấn Độ</strong></p>
+                    <div class="prod-footer">
+                        <span class="prod-price">Liên hệ báo giá</span>
+                        <a href="product-detail.php?id=che-pham-tru-sau-sinh-hoc" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product 6 -->
+            <div class="product-card">
+                <div class="prod-img-wrapper">
+                    <img src="images/bio-prep.jpg" alt="Chế phẩm vi sinh xử lý đáy ao nuôi" class="prod-img" loading="lazy">
+                    <span class="prod-badge badge-bio">Vi Sinh</span>
+                </div>
+                <div class="prod-body">
+                    <span class="prod-cat">CHẾ PHẨM VI SINH, SINH HỌC</span>
+                    <h3 class="prod-title"><a href="product-detail.php?id=vi-sinh-aquaculture-usa">Chế phẩm vi sinh xử lý đáy ao nuôi (Aquaculture USA)</a></h3>
+                    <p class="prod-origin">Xuất xứ: <strong>Hoa Kỳ</strong></p>
+                    <div class="prod-footer">
+                        <span class="prod-price">Liên hệ báo giá</span>
+                        <a href="product-detail.php?id=vi-sinh-aquaculture-usa" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="text-center" style="margin-top: 3.5rem;">
@@ -376,7 +410,7 @@ include 'includes/header.php';
         </div>
         
         <?php
-        require_once 'includes/db.php';
+        require_once __DIR__ . '/../backend/db.php';
         $news_home_res = db_query("SELECT *, DATE_FORMAT(published_at, '%d/%m/%Y') AS date, image_alt AS alt FROM news_articles WHERE status = 'published' ORDER BY published_at DESC LIMIT 3");
         $news_home_articles = [];
         if ($news_home_res instanceof mysqli_result) {

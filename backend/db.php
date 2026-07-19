@@ -1,4 +1,5 @@
 <?php
+
 // Database connection helper for XAMPP / local MySQL
 // Copy this file into your project and include it where you need database access.
 

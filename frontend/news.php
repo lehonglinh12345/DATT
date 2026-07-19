@@ -151,27 +151,7 @@ if (!$selected_article) {
         <div></div>
     <?php endif; ?>
 </div>
-                    <div class="news-article-tag">
-                        Bài viết này được đăng trong <a href="?section=<?php echo urlencode($section); ?>"><?php echo $section === 'tech' ? 'Kỹ thuật trồng trọt' : 'Tin Tức Nhà Nông'; ?></a>. Đánh dấu liên kết thường trực.
-                    </div>
-                    <div class="comment-section">
-                        <h3>Bình luận</h3>
-                        <form class="comment-form" action="#" method="post">
-                            <label for="comment">Bình luận *</label>
-                            <textarea id="comment" name="comment" placeholder="Viết bình luận..." required></textarea>
-                            <label for="name">Tên *</label>
-                            <input id="name" type="text" name="name" placeholder="Tên của bạn" required>
-                            <label for="email">Email *</label>
-                            <input id="email" type="email" name="email" placeholder="Email của bạn" required>
-                            <label for="website">Trang web</label>
-                            <input id="website" type="url" name="website" placeholder="Địa chỉ trang web">
-                            <div>
-                                <input id="save-info" type="checkbox" name="save_info">
-                                <label for="save-info">Lưu tên, email và trang web cho lần bình luận kế tiếp</label>
-                            </div>
-                            <button type="submit">Gửi bình luận</button>
-                        </form>
-                    </div>
+                    <?php include 'includes/comments.php'; ?>
                 </article>
 
                 <aside class="news-sidebar">

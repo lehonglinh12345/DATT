@@ -114,33 +114,83 @@ function auth_require_role(string $role): void {
         // Logged in but not authorized -> Show beautiful 403 error page
         http_response_code(403);
         $page_title = "Không Có Quyền Truy Cập";
-        
-        // Load layout manually so we don't depend on relative paths in deep folders
-        include_once __DIR__ . '/../frontend/includes/head.php';
-        include_once __DIR__ . '/../frontend/includes/header.php';
         ?>
-        <div class="container" style="padding: 8rem 1.5rem; text-align: center;">
-            <div style="font-size: 5rem; color: var(--color-secondary); margin-bottom: 2rem; animation: pulse 2s infinite;">
-                <i class="fa-solid fa-circle-exclamation"></i>
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title><?= $page_title ?></title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                body {
+                    font-family: 'Inter', sans-serif;
+                    background-color: #f8fafc;
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                }
+                .container {
+                    padding: 3rem 1.5rem;
+                    text-align: center;
+                    background: white;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    max-width: 500px;
+                    width: 100%;
+                }
+                .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 10px 20px;
+                    border-radius: 50px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                    border: 1px solid transparent;
+                }
+                .btn-primary {
+                    background-color: #0b6623;
+                    color: white;
+                }
+                .btn-primary:hover {
+                    background-color: #09501c;
+                    box-shadow: 0 4px 12px rgba(11,102,35,0.3);
+                }
+                .btn-outline {
+                    border-color: #0b6623;
+                    color: #0b6623;
+                }
+                .btn-outline:hover {
+                    background-color: #f0fdf4;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div style="font-size: 5rem; color: #0f4c81; margin-bottom: 2rem;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h1 style="color: #0f4c81; font-size: 2rem; margin-bottom: 1rem;">Không Có Quyền Truy Cập</h1>
+                <p style="color: #64748b; font-size: 1rem; margin-bottom: 2rem;">
+                    Bạn đã đăng nhập dưới tài khoản <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> nhưng không có đủ thẩm quyền truy cập nội dung này.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <a href="<?= get_frontend_url('index.php') ?>" class="btn btn-outline">
+                        <i class="fa-solid fa-house"></i> Về Trang Chủ
+                    </a>
+                    <a href="<?= get_frontend_url('logout.php') ?>" class="btn btn-primary">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                    </a>
+                </div>
             </div>
-            <h1 style="color: var(--color-secondary); font-size: 2.5rem; margin-bottom: 1rem;">Không Có Quyền Truy Cập</h1>
-            <p style="color: var(--color-dark-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto 2.5rem auto;">
-                Bạn đã đăng nhập dưới tài khoản <strong><?= h($_SESSION['username']) ?></strong> nhưng không có đủ thẩm quyền truy cập nội dung này.
-            </p>
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-                <a href="<?= get_frontend_url('index.php') ?>" class="btn btn-primary">Quay Lại Trang Chủ</a>
-                <a href="<?= get_frontend_url('logout.php') ?>" class="btn btn-outline">Đăng Xuất / Đổi Tài Khoản</a>
-            </div>
-        </div>
-        <style>
-            @keyframes pulse {
-                0% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.05); opacity: 0.8; }
-                100% { transform: scale(1); opacity: 1; }
-            }
-        </style>
+        </body>
+        </html>
         <?php
-        include_once __DIR__ . '/../frontend/includes/footer.php';
         exit;
     }
 }

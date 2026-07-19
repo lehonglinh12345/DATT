@@ -138,8 +138,17 @@ include 'includes/header.php';
                 </button>
             </form>
 
+            <div class="auth-divider">
+                <span>HOẶC</span>
+            </div>
+
+            <a href="google_login.php" class="btn btn-block btn-google">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" width="20">
+                Đăng ký bằng Google
+            </a>
+
             <div class="auth-footer">
-                <p>Đã có tài khoản? <a href="login.php">Đăng nhập tại đây</a></p>
+                <p>Đã có tài khoản? <a href="login.php">Đăng nhập ngay</a></p>
             </div>
         </div>
     </div>
@@ -277,6 +286,42 @@ include 'includes/header.php';
 }
 .auth-footer a:hover {
     text-decoration: underline;
+}
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--color-dark-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--color-border);
+}
+.auth-divider span {
+    padding: 0 10px;
+}
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: white;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+    text-decoration: none;
+    font-family: "Google Sans", arial, sans-serif;
+}
+.btn-google:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
 }
 </style>
 

@@ -114,6 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
                     $insert = db_query($insertSQL, "sssssssss", [$slug, $title, $section, $category, $excerpt, $image_path, $title, $content, $status]);
                     if ($insert) {
                         $success = "Thêm bài viết kỹ thuật mới thành công!";
+                        if ($status === 'published') {
+                            require_once __DIR__ . '/../notification_helper.php';
+                            send_global_notification("Bài viết mới", "Một bài viết kỹ thuật mới vừa được đăng: " . $title, "../frontend/planting-techniques.php");
+                        }
                         header('refresh:1.5;url=techniques.php');
                         $action = 'list';
                     } else {

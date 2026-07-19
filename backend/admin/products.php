@@ -120,6 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
                     $insert = db_query($insertSQL, "ssisssssiis", [$product_key, $name, $category_id, $badge, $badge_class, $origin, $price, $image_path, $views, $sales_count, $description]);
                     if ($insert) {
                         $id = $database->insert_id;
+                        require_once __DIR__ . '/../notification_helper.php';
+                        send_global_notification("Sản phẩm mới", "Vật tư nông nghiệp Ngọc Ánh Dương vừa có sản phẩm mới: " . $name, "../frontend/products.php");
                     } else {
                         $error = "Lỗi khi lưu sản phẩm vào cơ sở dữ liệu.";
                     }

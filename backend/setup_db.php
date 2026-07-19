@@ -201,6 +201,74 @@ $page_title = "Thiết Lập Cơ Sở Dữ Liệu";
                 echo "<div class='log-entry log-error'>[Lỗi] Không thể tạo bảng `chat_conversations`: " . h($database->error) . "</div>";
             }
 
+            // 6. Create comments table if not exists
+            $createCommentsSQL = "CREATE TABLE IF NOT EXISTS `comments` (
+              `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `article_slug` VARCHAR(255) NOT NULL,
+              `user_id` INT UNSIGNED NOT NULL,
+              `parent_id` INT UNSIGNED DEFAULT NULL,
+              `content` TEXT NOT NULL,
+              `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_comments_article_slug` (`article_slug`),
+              KEY `idx_comments_parent_id` (`parent_id`),
+              FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+            if ($database->query($createCommentsSQL)) {
+                echo "<div class='log-entry log-success'>[Thành công] Đã tạo/kiểm tra bảng `comments`.</div>";
+            } else {
+                echo "<div class='log-entry log-error'>[Lỗi] Không thể tạo bảng `comments`: " . h($database->error) . "</div>";
+            }
+
+            // 7. Create comment_likes table if not exists
+            $createCommentLikesSQL = "CREATE TABLE IF NOT EXISTS `comment_likes` (
+              `user_id` INT UNSIGNED NOT NULL,
+              `comment_id` INT UNSIGNED NOT NULL,
+              PRIMARY KEY (`user_id`, `comment_id`),
+              FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+              FOREIGN KEY (`comment_id`) REFERENCES `comments`(`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+            if ($database->query($createCommentLikesSQL)) {
+                echo "<div class='log-entry log-success'>[Thành công] Đã tạo/kiểm tra bảng `comment_likes`.</div>";
+            } else {
+                echo "<div class='log-entry log-error'>[Lỗi] Không thể tạo bảng `comment_likes`: " . h($database->error) . "</div>";
+            }
+
+            // 8. Create notifications table if not exists
+            $createNotificationsSQL = "CREATE TABLE IF NOT EXISTS `notifications` (
+              `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `title` VARCHAR(255) NOT NULL,
+              `message` TEXT NOT NULL,
+              `link` VARCHAR(512) DEFAULT NULL,
+              `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+            if ($database->query($createNotificationsSQL)) {
+                echo "<div class='log-entry log-success'>[Thành công] Đã tạo/kiểm tra bảng `notifications`.</div>";
+            } else {
+                echo "<div class='log-entry log-error'>[Lỗi] Không thể tạo bảng `notifications`: " . h($database->error) . "</div>";
+            }
+
+            // 9. Create user_notifications table if not exists
+            $createUserNotificationsSQL = "CREATE TABLE IF NOT EXISTS `user_notifications` (
+              `user_id` INT UNSIGNED NOT NULL,
+              `notification_id` INT UNSIGNED NOT NULL,
+              `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+              PRIMARY KEY (`user_id`, `notification_id`),
+              FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+              FOREIGN KEY (`notification_id`) REFERENCES `notifications`(`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+            if ($database->query($createUserNotificationsSQL)) {
+                echo "<div class='log-entry log-success'>[Thành công] Đã tạo/kiểm tra bảng `user_notifications`.</div>";
+            } else {
+                echo "<div class='log-entry log-error'>[Lỗi] Không thể tạo bảng `user_notifications`: " . h($database->error) . "</div>";
+            }
+
             echo "<div class='log-entry log-success'>[Hoàn thành] Tất cả các tác vụ đã được xử lý xong!</div>";
             ?>
         </div>
