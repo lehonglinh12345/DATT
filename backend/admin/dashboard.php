@@ -62,6 +62,22 @@ if ($res) {
     $quote_count = (int)$row['cnt'];
 }
 
+// New orders count
+$new_order_count = 0;
+$res = db_query("SELECT COUNT(*) as cnt FROM orders WHERE status = 'pending'");
+if ($res) {
+    $row = $res->fetch_assoc();
+    $new_order_count = (int)$row['cnt'];
+}
+
+// Fetch recent orders
+$recent_orders = db_query("
+    SELECT o.*, 
+    (SELECT GROUP_CONCAT(p.name SEPARATOR ', ') FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = o.id) AS product_names 
+    FROM orders o 
+    ORDER BY o.id DESC LIMIT 5
+");
+
 // Fetch recent messages
 $recent_messages = db_query("SELECT * FROM contact_messages ORDER BY id DESC LIMIT 5");
 
@@ -114,6 +130,18 @@ $quote_counts = array_values($quote_monthly);
 
 <!-- Metrics Grid -->
 <div class="admin-metrics-grid">
+    <a href="orders.php" class="admin-metric-link">
+    <div class="admin-metric-card">
+        <div class="admin-metric-info">
+            <span class="admin-metric-label">Đơn Hàng Mới</span>
+            <span class="admin-metric-value"><?= $new_order_count ?></span>
+        </div>
+        <div class="admin-metric-icon icon-danger" style="background-color: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+            <i class="fa-solid fa-cart-arrow-down"></i>
+        </div>
+    </div>
+    </a>
+
     <a href="products.php" class="admin-metric-link">
     <div class="admin-metric-card">
         <div class="admin-metric-info">
@@ -234,7 +262,7 @@ $quote_counts = array_values($quote_monthly);
             <a href="messages.php" class="shortcut-btn">
                 <i class="fa-solid fa-envelope"></i> Thư Liên Hệ
             </a>
-            <a href="index.php" target="_blank" class="shortcut-btn shortcut-home">
+            <a href="../../frontend/index.php" target="_blank" class="shortcut-btn shortcut-home">
                 <i class="fa-solid fa-globe"></i> Xem Trang Chủ
             </a>
         </div>
@@ -243,6 +271,26 @@ $quote_counts = array_values($quote_monthly);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Number counter animation
+    const valueElements = document.querySelectorAll('.admin-metric-value');
+    valueElements.forEach(el => {
+        const targetValue = parseInt(el.innerText.replace(/,/g, ''), 10) || 0;
+        let currentValue = 0;
+        const increment = targetValue / 40; // 40 steps
+        
+        if (targetValue > 0) {
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= targetValue) {
+                    el.innerText = targetValue.toLocaleString('en-US');
+                    clearInterval(timer);
+                } else {
+                    el.innerText = Math.ceil(currentValue).toLocaleString('en-US');
+                }
+            }, 25);
+        }
+    });
+
     // 1. Doughnut Chart — Category Distribution
     const categoryCtx = document.getElementById('categoryChart').getContext('2d');
     new Chart(categoryCtx, {
@@ -358,6 +406,72 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Recent Orders Section -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3><i class="fa-solid fa-cart-shopping"></i> Đơn Hàng Mới Nhất</h3>
+        <a href="orders.php" class="btn btn-outline btn-sm" style="border-radius: 8px;">Xem tất cả</a>
+    </div>
+    <div class="admin-card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="admin-table responsive-cards-mobile">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Mã ĐH</th>
+                        <th>Khách hàng</th>
+                        <th>Sản phẩm</th>
+                        <th style="text-align: right;">Tổng Tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày Đặt</th>
+                        <th style="width: 100px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($recent_orders && $recent_orders->num_rows > 0): ?>
+                        <?php while ($order = $recent_orders->fetch_assoc()): 
+                            $status_badge = '';
+                            switch ($order['status']) {
+                                case 'pending': $status_badge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706;"><i class="fa-regular fa-clock"></i> Chờ xử lý</span>'; break;
+                                case 'confirmed': $status_badge = '<span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: #2563eb;"><i class="fa-solid fa-check"></i> Đã xác nhận</span>'; break;
+                                case 'shipping': $status_badge = '<span class="status-badge" style="background: rgba(139, 92, 246, 0.15); color: #7c3aed;"><i class="fa-solid fa-truck"></i> Đang giao</span>'; break;
+                                case 'completed': $status_badge = '<span class="status-badge" style="background: rgba(16, 185, 129, 0.15); color: #059669;"><i class="fa-solid fa-box"></i> Hoàn thành</span>'; break;
+                                case 'cancelled': $status_badge = '<span class="status-badge" style="background: rgba(239, 68, 68, 0.15); color: #dc2626;"><i class="fa-solid fa-times"></i> Đã hủy</span>'; break;
+                            }
+                        ?>
+                            <tr>
+                                <td data-label="Mã ĐH" style="font-weight: 600;">#<?= $order['id'] ?></td>
+                                <td data-label="Khách hàng">
+                                    <div style="font-weight: 600;"><a href="orders.php?action=view&id=<?= $order['id'] ?>" style="color: var(--color-secondary); text-decoration: underline;"><?= h($order['customer_name']) ?></a></div>
+                                    <div style="font-size: 0.8rem; color: var(--color-admin-text-muted);"><?= h($order['customer_phone']) ?></div>
+                                </td>
+                                <td data-label="Sản phẩm" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?= h($order['product_names'] ?? '') ?>">
+                                    <?= h($order['product_names'] ?? '') ?>
+                                </td>
+                                <td data-label="Tổng Tiền" style="text-align: right; font-weight: 600; color: var(--color-primary);"><?= number_format($order['total_price'], 0, ',', '.') ?>đ</td>
+                                <td data-label="Trạng thái"><?= $status_badge ?></td>
+                                <td data-label="Ngày Đặt"><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td>
+                                <td data-label="Thao tác">
+                                    <div class="actions-cell">
+                                        <a href="orders.php?action=view&id=<?= $order['id'] ?>" class="btn-icon-only btn-view" title="Xem chi tiết">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--color-admin-text-muted);">
+                                Chưa có đơn hàng nào được tạo.
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <!-- Recent Submissions Section -->
 <div class="admin-card">

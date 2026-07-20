@@ -18,7 +18,7 @@ if ($action === 'get') {
     $user_id = $_SESSION['user_id'] ?? 0;
 
     // Fetch all comments for the article
-    $query = "SELECT c.*, u.full_name, u.username, 
+    $query = "SELECT c.*, u.full_name, u.username, u.avatar, 
               (SELECT COUNT(*) FROM comment_likes cl WHERE cl.comment_id = c.id) as likes_count,
               (SELECT COUNT(*) FROM comment_likes cl2 WHERE cl2.comment_id = c.id AND cl2.user_id = ?) as user_liked
               FROM comments c 

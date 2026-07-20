@@ -31,7 +31,15 @@ if ($new_article_res) {
     $new_article_count = (int)$row['cnt'];
 }
 
-$total_unread_notifications = $new_msg_count + $new_quote_count + $new_article_count;
+// Fetch pending orders count
+$new_order_res = db_query("SELECT COUNT(*) as cnt FROM orders WHERE status = 'pending'");
+$new_order_count = 0;
+if ($new_order_res) {
+    $row = $new_order_res->fetch_assoc();
+    $new_order_count = (int)$row['cnt'];
+}
+
+$total_unread_notifications = $new_msg_count + $new_quote_count + $new_article_count + $new_order_count;
 
 // Fetch latest unread notifications (up to 5 items)
 $notifications_list = [];
@@ -50,6 +58,12 @@ if ($notif_res_quote) {
 $notif_res_art = db_query("SELECT id, title as name, created_at, 'article' as type FROM news_articles WHERE status = 'pending' ORDER BY id DESC LIMIT 5");
 if ($notif_res_art) {
     while ($r = $notif_res_art->fetch_assoc()) {
+        $notifications_list[] = $r;
+    }
+}
+$notif_res_order = db_query("SELECT id, customer_name as name, created_at, 'order' as type FROM orders WHERE status = 'pending' ORDER BY id DESC LIMIT 5");
+if ($notif_res_order) {
+    while ($r = $notif_res_order->fetch_assoc()) {
         $notifications_list[] = $r;
     }
 }
@@ -139,6 +153,17 @@ $notifications_list = array_slice($notifications_list, 0, 5);
                             <?php endif; ?>
                         </a>
                     </li>
+                    <li class="admin-nav-item <?= $active_tab === 'orders' ? 'active' : '' ?>">
+                        <a href="orders.php" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                                <span>Đơn Hàng</span>
+                            </span>
+                            <?php if ($new_order_count > 0): ?>
+                                <span class="badge-msg-count" style="background-color: #3b82f6; color: white; border-radius: 50px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; height: 18px; min-width: 18px; line-height: 1;"><?= $new_order_count ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
                     <li class="admin-nav-item <?= $active_tab === 'users' ? 'active' : '' ?>">
                         <a href="users.php">
                             <i class="fa-solid fa-users-gear"></i>
@@ -206,6 +231,11 @@ $notifications_list = array_slice($notifications_list, 0, 5);
                                             $bgColor = 'background-color: rgba(245, 158, 11, 0.1); color: #f59e0b;';
                                             $iconClass = 'fa-newspaper';
                                             $descText = 'Đóng góp bài viết mới chờ duyệt';
+                                        } elseif ($notif['type'] === 'order') {
+                                            $notifUrl = 'orders.php?action=view&id='.$notif['id'];
+                                            $bgColor = 'background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;';
+                                            $iconClass = 'fa-cart-shopping';
+                                            $descText = 'Có đơn đặt hàng mới';
                                         }
                                         ?>
                                         <a href="<?= $notifUrl ?>" class="admin-notif-item" style="display: flex; gap: 0.75rem; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--color-admin-border); font-size: 0.82rem; color: var(--color-admin-text-dark); transition: background-color 0.2s ease; text-decoration: none; align-items: flex-start;">

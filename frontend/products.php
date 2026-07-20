@@ -100,13 +100,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                         </div>
                         <div class="prod-footer">
                             <span class="prod-price"><?php echo htmlspecialchars($prod['price']); ?></span>
-                            <?php
-                                $quoteTarget = 'contact.php?action=quote&prod_name=' . urlencode($prod['name']) . '&prod_key=' . urlencode($prod['product_key']) . '&prod_link=' . urlencode('product-detail.php?id=' . $prod['product_key']);
-                                $quoteUrl = $is_logged_in ? $quoteTarget : 'login.php?redirect=' . urlencode($quoteTarget);
-                            ?>
                             <div class="product-actions">
                                 <a href="product-detail.php?id=<?php echo htmlspecialchars($prod['product_key']); ?>" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                                <a href="<?php echo $quoteUrl; ?>" class="btn btn-secondary btn-quote" title="Yêu cầu báo giá">Báo giá</a>
+                                <button class="btn btn-secondary btn-add-cart-list" data-id="<?php echo $prod['id']; ?>" style="background-color: #10b981; border-color: #10b981; color: white;" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></button>
                             </div>
                         </div>
                     </div>
@@ -146,7 +142,7 @@ $is_logged_in = auth_is_logged_in();
 ?>
 
 <!-- Page Header Banner -->
-<section class="about-hero" style="background: linear-gradient(rgba(18, 24, 32, 0.75), rgba(18, 24, 32, 0.8)), url('images/hero-bg.jpg') center/cover;">
+<section class="about-hero" style="background: linear-gradient(rgba(18, 24, 32, 0.75), rgba(18, 24, 32, 0.8)), url('images/about-hero.jpg') center/cover;">
     <div class="container">
         <h1>Sản Phẩm</h1>
         <div class="breadcrumbs">
@@ -258,11 +254,7 @@ $is_logged_in = auth_is_logged_in();
                 </div>
             </div>
             
-            <?php if (!$is_logged_in): ?>
-                <div class="auth-info-banner" style="margin-bottom: 1rem; padding: 1rem 1.25rem; border-radius: 12px; background: #f4f9ff; color: #0f4c81; border: 1px solid #cfe1f8;">
-                    <strong>Lưu ý:</strong> Mời quý khách đăng nhập để gửi yêu cầu báo giá sản phẩm. <a href="login.php?redirect=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" style="color: #0f4c81; text-decoration: underline; font-weight: 600;">Đăng nhập</a>.
-                </div>
-            <?php endif; ?>
+
 
             <!-- AJAX search loader -->
             <div class="search-loading-wrapper" id="searchLoading">
@@ -292,13 +284,9 @@ $is_logged_in = auth_is_logged_in();
                                     </div>
                                     <div class="prod-footer">
                                         <span class="prod-price"><?php echo htmlspecialchars($prod['price']); ?></span>
-                                        <?php
-                                            $quoteTarget = 'contact.php?action=quote&prod_name=' . urlencode($prod['name']) . '&prod_key=' . urlencode($prod['product_key']) . '&prod_link=' . urlencode('product-detail.php?id=' . $prod['product_key']);
-                                            $quoteUrl = $is_logged_in ? $quoteTarget : 'login.php?redirect=' . urlencode($quoteTarget);
-                                        ?>
                                         <div class="product-actions">
                                             <a href="product-detail.php?id=<?php echo htmlspecialchars($prod['product_key']); ?>" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                                            <a href="<?php echo $quoteUrl; ?>" class="btn btn-secondary btn-quote" title="Yêu cầu báo giá">Báo giá</a>
+                                            <button class="btn btn-secondary btn-add-cart-list" data-id="<?php echo $prod['id']; ?>" style="background-color: #10b981; border-color: #10b981; color: white;" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></button>
                                         </div>
                                     </div>
                                 </div>

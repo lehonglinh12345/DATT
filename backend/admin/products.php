@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
         $name = trim($_POST['name'] ?? '');
         $product_key = trim($_POST['product_key'] ?? '');
         $category_id = (int)($_POST['category_id'] ?? 0);
-        $price = trim($_POST['price'] ?? 'Liên hệ báo giá');
+        $price = trim($_POST['price'] ?? '');
         $origin = trim($_POST['origin'] ?? '');
         $badge = trim($_POST['badge'] ?? '');
         $badge_class = trim($_POST['badge_class'] ?? '');
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
 // --------------------------------------------------------------------------
 if ($action === 'add' || $action === 'edit'):
     $product = [
-        'name' => '', 'product_key' => '', 'category_id' => '', 'price' => 'Liên hệ báo giá', 
+        'name' => '', 'product_key' => '', 'category_id' => '', 'price' => '', 
         'origin' => '', 'badge' => '', 'badge_class' => '', 'image' => '', 'description' => '',
         'views' => 0, 'sales_count' => 0
     ];
@@ -444,7 +444,7 @@ if ($action === 'list'):
                                     </td>
                                     <td data-label="Thao tác">
                                         <div class="actions-cell" style="justify-content: center;">
-                                            <a href="product-detail.php?id=<?= $prod['product_key'] ?>" class="btn-icon-only btn-view" target="_blank" title="Xem ngoài web">
+                                            <a href="../../frontend/product-detail.php?id=<?= $prod['product_key'] ?>" class="btn-icon-only btn-view" target="_blank" title="Xem ngoài web">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                             </a>
                                             <a href="products.php?action=edit&id=<?= $prod['id'] ?>" class="btn-icon-only btn-edit" title="Sửa thông tin">

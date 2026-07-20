@@ -1,12 +1,23 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$cart_count = 0;
+if (isset($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $item) {
+        $cart_count += $item['quantity'];
+    }
+}
+
 $nav_items = [
     ['href' => 'index.php',                'label' => 'Trang chủ',  'key' => 'home'],
     ['href' => 'about.php',                'label' => 'Giới thiệu', 'key' => 'about'],
     ['href' => 'products.php',             'label' => 'Sản phẩm',   'key' => 'products'],
-    ['href' => 'planting-techniques.php',  'label' => 'Kỹ thuật',   'key' => 'tech'],
-    ['href' => 'news.php',                 'label' => 'Tin tức',    'key' => 'news'],
+    ['href' => 'news.php',                 'label' => 'Tin tức',    'key' => 'news', 'children' => [
+        ['href' => 'planting-techniques.php',  'label' => 'Kỹ thuật',   'key' => 'tech']
+    ]],
     ['href' => 'contact.php',              'label' => 'Liên hệ',    'key' => 'contact'],
 ];
 
@@ -66,7 +77,7 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
         <div class="top-meta">
             <span><i class="fa-solid fa-clock"></i> 7:30 – 17:00</span>
             <div class="lang-switch">
-                <span class="active">VI</span> | <span>EN</span>
+                <span class="lang-btn active" data-lang="vi" style="cursor:pointer;">VI</span> | <span class="lang-btn" data-lang="en" style="cursor:pointer;">EN</span>
             </div>
         </div>
     </div>
@@ -91,20 +102,36 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
         <nav class="nav-menu" aria-label="Điều hướng chính">
             <ul>
                 <?php foreach ($nav_items as $item):
-                    $active = isset($active_page) && $active_page === $item['key'];
+                    $has_children = isset($item['children']);
+                    $active = isset($active_page) && ($active_page === $item['key'] || ($has_children && in_array($active_page, array_column($item['children'], 'key'))));
                 ?>
-                <li>
+                <li class="<?= $has_children ? 'has-dropdown' : '' ?>">
                     <a href="<?= $item['href'] ?>"
                        class="<?= $active ? 'active' : '' ?>"
                        <?= $active ? 'aria-current="page"' : '' ?>>
-                        <?= $item['label'] ?>
+                        <?= $item['label'] ?> <?= $has_children ? '<i class="fa-solid fa-chevron-down" style="font-size: 0.7em; margin-left: 3px;"></i>' : '' ?>
                     </a>
+                    <?php if ($has_children): ?>
+                    <ul class="dropdown-menu">
+                        <?php foreach ($item['children'] as $child): ?>
+                        <li><a href="<?= $child['href'] ?>"><?= $child['label'] ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php endif; ?>
                 </li>
                 <?php endforeach; ?>
             </ul>
         </nav>
 
         <div class="header-actions">
+            <!-- SHOPPING CART -->
+            <div class="user-menu-wrapper" style="margin-right: 15px;">
+                <a href="cart.php" class="user-menu-btn" aria-label="Giỏ hàng" style="position: relative; text-decoration: none;">
+                    <i class="fa-solid fa-cart-shopping" style="font-size: 1.2rem; color: #0b6623;"></i>
+                    <span class="badge" id="cartBadge" style="<?= $cart_count > 0 ? '' : 'display: none;' ?> position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; font-weight: bold; line-height: 18px; text-align: center;"><?= $cart_count ?></span>
+                </a>
+            </div>
+
             <?php if (auth_is_logged_in()): 
                 $curr_user = auth_get_user();
             ?>
@@ -127,7 +154,11 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
 
                 <div class="user-menu-wrapper">
                     <button class="user-menu-btn" id="userMenuBtn" aria-label="Menu người dùng">
-                        <i class="fa-solid fa-circle-user" style="font-size: 1.1rem;"></i>
+                        <?php if (!empty($curr_user['avatar'])): ?>
+                            <img src="<?= h($curr_user['avatar']) ?>" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; margin-right: 0.25rem;">
+                        <?php else: ?>
+                            <i class="fa-solid fa-circle-user" style="font-size: 1.1rem; margin-right: 0.25rem;"></i>
+                        <?php endif; ?>
                         <span class="user-name-text"><?= h($curr_user['full_name'] ?: $curr_user['username']) ?></span>
                         <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem; opacity: 0.7;"></i>
                     </button>
@@ -276,7 +307,7 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
             
 
             <a href="contact.php" class="btn btn-primary btn-quote">
-                <i class="fa-solid fa-tag"></i> Báo Giá
+                <i class="fa-solid fa-phone-volume"></i> Liên Hệ
             </a>
             <button class="mobile-toggle" id="mobileMenuToggle"
                     aria-label="Mở menu" aria-expanded="false" aria-controls="mobileNav">
@@ -310,14 +341,29 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
 
     <ul>
         <?php foreach ($nav_items as $item):
-            $active = isset($active_page) && $active_page === $item['key'];
+            $has_children = isset($item['children']);
+            $active = isset($active_page) && ($active_page === $item['key'] || ($has_children && in_array($active_page, array_column($item['children'], 'key'))));
         ?>
-        <li>
-            <a href="<?= $item['href'] ?>"
-               class="<?= $active ? 'active' : '' ?>"
-               <?= $active ? 'aria-current="page"' : '' ?>>
-                <?= $item['label'] ?>
-            </a>
+        <li class="<?= $has_children ? 'has-dropdown-mobile' : '' ?>">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <a href="<?= $item['href'] ?>"
+                   class="<?= $active ? 'active' : '' ?>"
+                   <?= $active ? 'aria-current="page"' : '' ?>>
+                    <?= $item['label'] ?>
+                </a>
+                <?php if ($has_children): ?>
+                <button class="toggle-dropdown" style="background: none; border: none; padding: 10px; cursor: pointer; color: var(--color-dark);">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <?php endif; ?>
+            </div>
+            <?php if ($has_children): ?>
+            <ul class="dropdown-menu-mobile" style="display: none; padding-left: 1.5rem; list-style: none;">
+                <?php foreach ($item['children'] as $child): ?>
+                <li><a href="<?= $child['href'] ?>" style="padding: 0.75rem 0; font-size: 0.95rem; display: block; color: #475569; text-decoration: none; border-bottom: none;"><?= $child['label'] ?></a></li>
+                <?php endforeach; ?>
+            </ul>
+            <?php endif; ?>
         </li>
         <?php endforeach; ?>
     </ul>
@@ -359,9 +405,34 @@ function render_logo(string $href = 'index.php', bool $show_sub = true): string 
             <a href="mailto:ngocanhduongchemical@gmail.com"><i class="fa-solid fa-envelope" style="color: var(--color-primary);"></i> ngocanhduongchemical@gmail.com</a>
         </div>
         <a href="contact.php" class="btn btn-primary" style="margin-top:.8rem;justify-content:center;border-radius:8px;padding:0.6rem;">
-            <i class="fa-solid fa-tag"></i> Nhận Báo Giá
+            <i class="fa-solid fa-phone-volume"></i> Liên Hệ Tư Vấn
         </a>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu dropdown toggles
+        const dropdownToggles = document.querySelectorAll('.toggle-dropdown');
+        dropdownToggles.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const parentLi = this.closest('li.has-dropdown-mobile');
+                const menu = parentLi.querySelector('.dropdown-menu-mobile');
+                const icon = this.querySelector('i');
+                
+                if (menu.style.display === 'none' || menu.style.display === '') {
+                    menu.style.display = 'block';
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                } else {
+                    menu.style.display = 'none';
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            });
+        });
+    });
+</script>
 
 <div class="mobile-overlay" id="mobileOverlay" aria-hidden="true"></div>

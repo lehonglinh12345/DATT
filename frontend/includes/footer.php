@@ -100,7 +100,7 @@
             </ul>
 
             <a href="contact.php" class="footer-cta-btn">
-                <i class="fa-solid fa-tag"></i> Nhận Báo Giá Ngay
+                <i class="fa-solid fa-phone-volume"></i> Liên Hệ Tư Vấn Ngay
             </a>
         </div>
     </div>
@@ -123,6 +123,22 @@
     <?php include __DIR__ . '/chatbot-widget.php'; ?>
 <?php endif; ?>
 
+<!-- Google Translate System -->
+<div id="google_translate_element" style="display:none;"></div>
+<style>
+    /* Hide the google translate toolbar that sometimes appears at the top */
+    .skiptranslate iframe { display: none !important; }
+    body { top: 0 !important; }
+    /* Hide the google translate hover tooltip */
+    #goog-gt-tt { display: none !important; }
+</style>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'vi', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
 <!-- Scroll to Top -->
 <button id="scrollToTopBtn" class="scroll-to-top" aria-label="Cuộn lên đầu trang">
     <i class="fa-solid fa-arrow-up"></i>
@@ -135,6 +151,37 @@
 <?php endif; ?>
 <script>
 (function(){
+    // Language Switcher Logic
+    var langBtns = document.querySelectorAll('.lang-btn');
+    var currentLang = 'vi';
+    var match = document.cookie.match(new RegExp('(^| )googtrans=([^;]+)'));
+    if (match) {
+        if (match[2] === '/vi/en' || match[2] === '/auto/en') {
+            currentLang = 'en';
+        }
+    }
+    langBtns.forEach(function(btn) {
+        if (btn.getAttribute('data-lang') === currentLang) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+        btn.addEventListener('click', function() {
+            var lang = this.getAttribute('data-lang');
+            if (lang === 'en') {
+                document.cookie = "googtrans=/vi/en; path=/";
+                document.cookie = "googtrans=/vi/en; domain=" + window.location.hostname + "; path=/";
+            } else {
+                document.cookie = "googtrans=/vi/vi; path=/";
+                document.cookie = "googtrans=/vi/vi; domain=" + window.location.hostname + "; path=/";
+                // Optionally clear it
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + window.location.hostname + "; path=/;";
+            }
+            window.location.reload();
+        });
+    });
+
     try {
         // User menu fallback - enhanced version
         var userBtn = document.getElementById('userMenuBtn');
@@ -193,6 +240,112 @@
         console && console.error && console.error('UI init error', err);
     }
 })();
+
+window.flyToCart = function(imgElement) {
+    const cartBtn = document.querySelector('a[href="cart.php"].user-menu-btn');
+    if (!cartBtn || !imgElement) return;
+    
+    const cartIcon = cartBtn.querySelector('i');
+    const imgRect = imgElement.getBoundingClientRect();
+    const cartRect = cartBtn.getBoundingClientRect();
+    
+    const flyingImg = imgElement.cloneNode();
+    flyingImg.style.position = 'fixed';
+    flyingImg.style.left = imgRect.left + 'px';
+    flyingImg.style.top = imgRect.top + 'px';
+    flyingImg.style.width = imgRect.width + 'px';
+    flyingImg.style.height = imgRect.height + 'px';
+    flyingImg.style.zIndex = '9999';
+    flyingImg.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    flyingImg.style.borderRadius = '50%';
+    flyingImg.style.pointerEvents = 'none';
+    flyingImg.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+    
+    document.body.appendChild(flyingImg);
+    
+    setTimeout(() => {
+        flyingImg.style.left = (cartRect.left + cartRect.width / 2 - 10) + 'px';
+        flyingImg.style.top = (cartRect.top + cartRect.height / 2 - 10) + 'px';
+        flyingImg.style.width = '20px';
+        flyingImg.style.height = '20px';
+        flyingImg.style.opacity = '0';
+    }, 50);
+    
+    setTimeout(() => {
+        flyingImg.remove();
+        if (cartIcon) {
+            cartIcon.style.transform = 'scale(1.4)';
+            cartIcon.style.transition = 'transform 0.3s ease';
+            setTimeout(() => {
+                cartIcon.style.transform = 'scale(1)';
+            }, 300);
+        }
+    }, 850);
+};
+
+// Global Add to Cart Logic for list pages
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-add-cart-list')) {
+        e.preventDefault();
+        const btn = e.target.closest('.btn-add-cart-list');
+        const productId = btn.getAttribute('data-id');
+        
+        const card = btn.closest('.product-card');
+        const imgElement = card ? card.querySelector('.prod-img') : null;
+        
+        const formData = new FormData();
+        formData.append('action', 'add');
+        formData.append('product_id', productId);
+        formData.append('quantity', 1);
+
+        fetch('ajax_cart.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const badge = document.getElementById('cartBadge');
+                if (badge) {
+                    badge.textContent = data.total_items;
+                    badge.style.display = 'block';
+                }
+                
+                if (imgElement) {
+                    window.flyToCart(imgElement);
+                }
+                
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                btn.style.backgroundColor = '#059669';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.style.backgroundColor = '#10b981';
+                }, 1500);
+            } else {
+                if (data.redirect) {
+                    alert(data.message);
+                    window.location.href = data.redirect;
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        });
+    }
+});
+// Global Auto-hide alerts after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.auto-hide-alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            setTimeout(() => alert.style.display = 'none', 500);
+        }, 5000);
+    });
+});
 </script>
 </body>
 </html>

@@ -170,7 +170,7 @@ if ($action === 'list'):
             <?php endif; ?>
 
             <div class="table-responsive">
-                <table class="admin-table">
+                <table class="admin-table responsive-cards-mobile">
                     <thead>
                         <tr>
                             <th style="width: 80px;">ID</th>
@@ -186,19 +186,19 @@ if ($action === 'list'):
                         <?php if ($categories && $categories->num_rows > 0): ?>
                             <?php while ($cat = $categories->fetch_assoc()): ?>
                                 <tr>
-                                    <td><?= $cat['id'] ?></td>
-                                    <td style="font-weight: 600;"><?= h($cat['name']) ?></td>
-                                    <td><code><?= h($cat['slug']) ?></code></td>
-                                    <td>
+                                    <td data-label="ID"><?= $cat['id'] ?></td>
+                                    <td data-label="Tên danh mục" style="font-weight: 600;"><?= h($cat['name']) ?></td>
+                                    <td data-label="Slug"><code><?= h($cat['slug']) ?></code></td>
+                                    <td data-label="Loại">
                                         <?php if ($cat['type'] === 'product'): ?>
                                             <span class="badge badge-customer"><i class="fa-solid fa-box"></i> Sản phẩm</span>
                                         <?php else: ?>
                                             <span class="badge badge-admin"><i class="fa-solid fa-file-lines"></i> Tin tức</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="font-weight: bold;"><?= $cat['product_count'] ?></td>
-                                    <td><?= date('d/m/Y', strtotime($cat['created_at'])) ?></td>
-                                    <td>
+                                    <td data-label="Số sản phẩm liên kết" style="font-weight: bold;"><?= $cat['product_count'] ?></td>
+                                    <td data-label="Ngày khởi tạo"><?= date('d/m/Y', strtotime($cat['created_at'])) ?></td>
+                                    <td data-label="Thao tác">
                                         <div class="actions-cell" style="justify-content: center;">
                                             <a href="categories.php?action=edit&id=<?= $cat['id'] ?>" class="btn-icon-only btn-edit" title="Sửa danh mục">
                                                 <i class="fa-solid fa-pen-to-square"></i>

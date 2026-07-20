@@ -56,6 +56,7 @@ if (isset($_GET['code'])) {
 
     $google_email = $user_data['email'];
     $google_name = $user_data['name'] ?? 'Người dùng Google';
+    $google_picture = $user_data['picture'] ?? null;
 
     // 3. Kiểm tra người dùng trong CSDL
     $stmt = db_query("SELECT * FROM users WHERE email = ?", "s", [$google_email]);
@@ -63,6 +64,11 @@ if (isset($_GET['code'])) {
     if ($stmt && $stmt->num_rows > 0) {
         // Đã tồn tại -> Lấy thông tin và Đăng nhập
         $user = $stmt->fetch_assoc();
+        // Cập nhật avatar nếu chưa có
+        if (empty($user['avatar']) && $google_picture) {
+            db_query("UPDATE users SET avatar = ? WHERE id = ?", "si", [$google_picture, $user['id']]);
+            $user['avatar'] = $google_picture;
+        }
     } else {
         // Chưa tồn tại -> Đăng ký tự động
         // Generate a random username base on email prefix
@@ -81,9 +87,9 @@ if (isset($_GET['code'])) {
         $hashed_password = password_hash($random_password, PASSWORD_DEFAULT);
 
         $insert = db_query(
-            "INSERT INTO users (username, email, password, full_name, role) VALUES (?, ?, ?, ?, 'customer')",
-            "ssss",
-            [$username, $google_email, $hashed_password, $google_name]
+            "INSERT INTO users (username, email, password, full_name, avatar, role) VALUES (?, ?, ?, ?, ?, 'customer')",
+            "sssss",
+            [$username, $google_email, $hashed_password, $google_name, $google_picture]
         );
 
         if ($insert) {
@@ -102,6 +108,10 @@ if (isset($_GET['code'])) {
     $_SESSION['full_name'] = $user['full_name'];
     $_SESSION['role'] = $user['role'];
     $_SESSION['phone'] = $user['phone'];
+    $_SESSION['avatar'] = $user['avatar'] ?? null;
+
+    // Restore cart from DB or save current guest cart to DB
+    auth_restore_cart_from_db($user['id']);
 
     // 5. Chuyển hướng về trang chủ hoặc trang mong muốn
     header('Location: index.php');

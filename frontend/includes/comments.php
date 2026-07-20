@@ -30,11 +30,17 @@
     const CURRENT_USER_ID = <?php echo isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'null'; ?>;
 
     function renderComment(comment, isReply = false) {
-        const initials = comment.full_name ? comment.full_name.charAt(0).toUpperCase() : (comment.username ? comment.username.charAt(0).toUpperCase() : 'U');
+        let avatarHtml = '';
+        if (comment.avatar) {
+            avatarHtml = `<img src="${escapeHtml(comment.avatar)}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+            const initials = comment.full_name ? comment.full_name.charAt(0).toUpperCase() : (comment.username ? comment.username.charAt(0).toUpperCase() : 'U');
+            avatarHtml = initials;
+        }
         
         let html = `
             <div class="comment-item ${isReply ? 'reply' : ''}" id="comment-${comment.id}">
-                <div class="comment-avatar">${initials}</div>
+                <div class="comment-avatar" style="overflow: hidden; padding: 0;">${avatarHtml}</div>
                 <div class="comment-content-box">
                     <div class="comment-header">
                         <span class="comment-author">${escapeHtml(comment.full_name || comment.username)}</span>

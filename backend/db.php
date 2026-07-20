@@ -33,7 +33,7 @@ function db_query(string $sql, ?string $types = null, ?array $params = null)
         return false;
     }
 
-    if ($types !== null && $params !== null) {
+    if (!empty($types) && $params !== null) {
         $stmt->bind_param($types, ...$params);
     }
 
@@ -58,9 +58,9 @@ function db_query(string $sql, ?string $types = null, ?array $params = null)
  * @param string $text
  * @return string
  */
-function h(string $text): string
+function h(?string $text): string
 {
-    return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    return htmlspecialchars($text ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 // Example usage:

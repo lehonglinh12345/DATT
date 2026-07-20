@@ -312,7 +312,7 @@ if ($action === 'list'):
             <?php endif; ?>
 
             <div class="table-responsive">
-                <table class="admin-table">
+                <table class="admin-table responsive-cards-mobile">
                     <thead>
                         <tr>
                             <th style="width: 80px;">Hình</th>
@@ -327,25 +327,29 @@ if ($action === 'list'):
                         <?php if ($articles && $articles->num_rows > 0): ?>
                             <?php while ($art = $articles->fetch_assoc()): ?>
                                 <tr>
-                                    <td>
+                                    <td data-label="Hình">
                                         <img src="../../frontend/<?= h($art['image'] ?: 'images/news-1.jpg') ?>" alt="Hình ảnh" style="height: 48px; width: 64px; object-fit: cover; border-radius: 6px; border: 1px solid var(--color-admin-border);">
                                     </td>
-                                    <td>
-                                        <div style="font-weight: 600; font-size: 0.95rem; line-height: 1.4;"><?= h($art['title']) ?></div>
-                                        <div style="font-size: 0.8rem; color: var(--color-admin-text-muted); margin-top: 2px;"><code>slug: <?= h($art['slug']) ?></code></div>
+                                    <td data-label="Tiêu đề bài viết">
+                                        <div style="text-align: right;">
+                                            <div style="font-weight: 600; font-size: 0.95rem; line-height: 1.4;"><?= h($art['title']) ?></div>
+                                            <div style="font-size: 0.8rem; color: var(--color-admin-text-muted); margin-top: 4px; word-break: break-all;">
+                                                <code>slug: <?= h($art['slug']) ?></code>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td><?= h($art['category'] ?: '-') ?></td>
-                                    <td>
+                                    <td data-label="Danh mục"><?= h($art['category'] ?: '-') ?></td>
+                                    <td data-label="Trạng thái">
                                         <?php if ($art['status'] === 'published'): ?>
                                             <span class="badge badge-customer">Công khai</span>
                                         <?php else: ?>
                                             <span class="badge badge-closed">Bản nháp</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= h($art['date']) ?></td>
-                                    <td>
+                                    <td data-label="Ngày đăng"><?= h($art['date']) ?></td>
+                                    <td data-label="Thao tác">
                                         <div class="actions-cell" style="justify-content: center;">
-                                            <a href="planting-techniques.php?article=<?= $art['slug'] ?>" class="btn-icon-only btn-view" target="_blank" title="Xem ngoài web">
+                                            <a href="../../frontend/planting-techniques.php?article=<?= $art['slug'] ?>" class="btn-icon-only btn-view" target="_blank" title="Xem ngoài web">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                             </a>
                                             <a href="techniques.php?action=edit&id=<?= $art['id'] ?>" class="btn-icon-only btn-edit" title="Sửa bài">

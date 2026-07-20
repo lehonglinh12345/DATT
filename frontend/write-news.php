@@ -217,7 +217,7 @@ include 'includes/header.php';
 </style>
 
 <!-- Banner Header -->
-<section class="about-hero" style="background: linear-gradient(rgba(18, 24, 32, 0.75), rgba(18, 24, 32, 0.8)), url('images/hero-bg.jpg') center/cover;">
+<section class="about-hero" style="background: linear-gradient(rgba(18, 24, 32, 0.75), rgba(18, 24, 32, 0.8)), url('images/about-hero.jpg') center/cover;">
     <div class="container">
         <h1>Đóng Góp Tin Tức</h1>
         <div class="breadcrumbs">

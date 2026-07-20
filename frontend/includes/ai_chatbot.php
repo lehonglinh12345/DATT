@@ -144,58 +144,9 @@ class AIChatbot {
                         $actionData = $replyData['action_data'] ?? [];
 
                         if ($action === 'create_quote') {
-                            if (auth_is_logged_in()) {
-                                $curr_user = auth_get_user();
-                                $name = $curr_user['full_name'] ?: $curr_user['username'];
-                                $phoneNum = $curr_user['phone'];
-
-                                if (!empty($phoneNum)) {
-                                    // Directly create and save the quote request
-                                    $prodName = $actionData['product'] ?? '';
-                                    $qty = $actionData['quantity'] ?? '1';
-                                    $prodKey = '';
-                                    $prodLink = '';
-                                    $prodRes = db_query("SELECT product_key FROM products WHERE name LIKE ? LIMIT 1", "s", ["%" . $prodName . "%"]);
-                                    if ($prodRes && $prodRes->num_rows > 0) {
-                                        $pRow = $prodRes->fetch_assoc();
-                                        $prodKey = $pRow['product_key'];
-                                        $prodLink = 'product-detail.php?id=' . $prodKey;
-                                    }
-
-                                    $msg = "Yêu cầu báo giá nhanh tự động từ khách hàng đã đăng nhập. Số lượng: " . $qty;
-                                    $saved = db_query(
-                                        "INSERT INTO quote_requests (product_name, product_key, product_link, name, phone, message) VALUES (?, ?, ?, ?, ?, ?)",
-                                        "ssssss",
-                                        [$prodName, $prodKey, $prodLink, $name, $phoneNum, $msg]
-                                    );
-
-                                    if ($saved) {
-                                        $reply .= "\n\n🎉 **Yêu cầu báo giá của anh/chị đã được gửi thành công!**\n\nEm đã sử dụng thông tin tài khoản đăng nhập của anh/chị:\n- **Khách hàng**: {$name}\n- **Số điện thoại**: {$phoneNum}\n- **Sản phẩm**: {$prodName}\n- **Số lượng**: {$qty}\n\nNhân viên kinh doanh sẽ liên hệ lại với anh/chị trong vòng 15-30 phút nữa ạ!";
-                                        $actionTaken = 'quote_success';
-                                    } else {
-                                        $reply .= "\n\nHệ thống đang bận nên chưa tạo phiếu tự động được. Quý khách vui lòng gọi Hotline **0976.828.171** để nhận báo giá sỉ đại lý tức thì ạ!";
-                                        $actionTaken = 'quote_error';
-                                    }
-                                } else {
-                                    // Logged in but no phone. We need phone.
-                                    $_SESSION['ai_chat_state'] = 'waiting_for_quote_phone';
-                                    $_SESSION['ai_quote_data'] = [
-                                        'product' => $actionData['product'] ?? '',
-                                        'quantity' => $actionData['quantity'] ?? '1',
-                                        'name' => $name
-                                    ];
-                                    $reply .= "\n\n👉 *Chào anh/chị {$name}, tài khoản của anh/chị chưa cập nhật Số điện thoại. Xin vui lòng cung cấp Số điện thoại liên hệ để gửi bảng báo giá ạ.*";
-                                    $actionTaken = 'quote_waiting_phone';
-                                }
-                            } else {
-                                $_SESSION['ai_chat_state'] = 'waiting_for_quote_name';
-                                $_SESSION['ai_quote_data'] = [
-                                    'product' => $actionData['product'] ?? '',
-                                    'quantity' => $actionData['quantity'] ?? '1'
-                                ];
-                                $reply .= "\n\n👉 *Để tiếp tục, xin hỏi anh/chị tên là gì để em tiện làm phiếu báo giá ạ?*";
-                                $actionTaken = 'start_quote';
-                            }
+                            $prodName = $actionData['product'] ?? '';
+                            $reply .= "\n\n👉 Để đặt mua trực tiếp **{$prodName}**, anh/chị vui lòng gọi ngay Hotline **0976.828.171** hoặc nhắn tin qua Zalo để được hỗ trợ chốt đơn nhanh nhất ạ!";
+                            $actionTaken = 'contact_success';
                         } elseif ($action === 'create_contact') {
                             if (auth_is_logged_in()) {
                                 $curr_user = auth_get_user();
@@ -260,66 +211,6 @@ class AIChatbot {
     private function processStateMachine($message) {
         $state = $_SESSION['ai_chat_state'];
 
-        if ($state === 'waiting_for_quote_name') {
-            $_SESSION['ai_quote_data']['name'] = $message;
-            $_SESSION['ai_chat_state'] = 'waiting_for_quote_phone';
-            return [
-                'message' => "Dạ, em đã ghi nhận tên anh/chị là **" . h($message) . "**. \n\n👉 Cho em xin thêm **Số điện thoại** liên hệ để gửi bảng báo giá kèm ưu đãi chiết khấu ạ.",
-                'action' => 'quote_waiting_phone',
-                'suggestions' => []
-            ];
-        }
-
-        if ($state === 'waiting_for_quote_phone') {
-            $phone = preg_replace('/[^0-9]/', '', $message);
-            if (strlen($phone) < 8 || strlen($phone) > 12) {
-                return [
-                    'message' => "⚠️ Số điện thoại có vẻ chưa đúng định dạng. Bạn vui lòng nhập lại số điện thoại Việt Nam gồm 10 chữ số (ví dụ: *0976828171*) nhé.",
-                    'action' => 'quote_waiting_phone_retry',
-                    'suggestions' => []
-                ];
-            }
-
-            $_SESSION['ai_quote_data']['phone'] = $message;
-            
-            $prodName = $_SESSION['ai_quote_data']['product'];
-            $qty = $_SESSION['ai_quote_data']['quantity'];
-            $name = $_SESSION['ai_quote_data']['name'];
-            $phoneNum = $_SESSION['ai_quote_data']['phone'];
-            
-            $prodKey = '';
-            $prodLink = '';
-            $prodRes = db_query("SELECT product_key FROM products WHERE name LIKE ? LIMIT 1", "s", ["%" . $prodName . "%"]);
-            if ($prodRes && $prodRes->num_rows > 0) {
-                $pRow = $prodRes->fetch_assoc();
-                $prodKey = $pRow['product_key'];
-                $prodLink = 'product-detail.php?id=' . $prodKey;
-            }
-
-            $msg = "Yêu cầu báo giá nhanh từ trợ lý AI. Số lượng: " . $qty;
-            $saved = db_query(
-                "INSERT INTO quote_requests (product_name, product_key, product_link, name, phone, message) VALUES (?, ?, ?, ?, ?, ?)",
-                "ssssss",
-                [$prodName, $prodKey, $prodLink, $name, $phoneNum, $msg]
-            );
-
-            $_SESSION['ai_chat_state'] = 'idle';
-            $_SESSION['ai_quote_data'] = [];
-
-            if ($saved) {
-                return [
-                    'message' => "🎉 **Yêu cầu báo giá đã được gửi thành công!**\n\nThông tin phiếu báo giá:\n- **Sản phẩm**: {$prodName}\n- **Số lượng**: {$qty}\n- **Khách hàng**: {$name}\n- **Số điện thoại**: {$phoneNum}\n\nNhân viên kinh doanh của Ngọc Ánh Dương sẽ liên hệ lại với anh/chị qua số điện thoại trên để gửi báo giá chi tiết và hướng dẫn nhận hàng trong vòng 15-30 phút nữa ạ!",
-                    'action' => 'quote_success',
-                    'suggestions' => $this->getDefaultSuggestions()
-                ];
-            } else {
-                return [
-                    'message' => "Dạ, máy chủ đang bận một chút nên em chưa tạo phiếu trực tiếp được, nhưng thông tin đã được ghi nhận tạm thời. Anh/chị có thể gọi ngay Hotline **0976.828.171** để nhận báo giá sỉ đại lý tức thì ạ!",
-                    'action' => 'quote_error',
-                    'suggestions' => ['Gọi ngay 0976.828.171', 'Trang chủ']
-                ];
-            }
-        }
 
         if ($state === 'waiting_for_contact_info') {
             $contactInfo = $message;
@@ -431,62 +322,12 @@ class AIChatbot {
             if ($matchedProduct) {
                 $_SESSION['ai_last_product_id'] = $matchedProduct['id']; // Ghi nhớ sản phẩm vừa nhắc tới
                 
-                $quantity = '1';
-                if (preg_match('/([0-9]+\s*(bao|tấn|kg|lít|l|chai|hộp|thùng|cặp))/ui', $message, $qtyMatches)) {
-                    $quantity = $qtyMatches[0];
-                } elseif (preg_match('/([0-9]+)/', $message, $numMatches)) {
-                    $quantity = $numMatches[0] . ' bao/thùng';
-                }
-
-                if (auth_is_logged_in()) {
-                    $curr_user = auth_get_user();
-                    $name = $curr_user['full_name'] ?: $curr_user['username'];
-                    $phoneNum = $curr_user['phone'];
-
-                    if (!empty($phoneNum)) {
-                        $prodName = $matchedProduct['name'];
-                        $qty = $quantity;
-                        $prodKey = $matchedProduct['product_key'];
-                        $prodLink = 'product-detail.php?id=' . $prodKey;
-                        $msg = "Yêu cầu báo giá nhanh tự động từ khách hàng đã đăng nhập. Số lượng: " . $qty;
-                        $saved = db_query(
-                            "INSERT INTO quote_requests (product_name, product_key, product_link, name, phone, message) VALUES (?, ?, ?, ?, ?, ?)",
-                            "ssssss",
-                            [$prodName, $prodKey, $prodLink, $name, $phoneNum, $msg]
-                        );
-
-                        if ($saved) {
-                            return [
-                                'message' => "Dạ, em sẵn sàng hỗ trợ tạo phiếu báo giá nhanh cho sản phẩm **{$prodName}** với số lượng **{$qty}**.\n\n🎉 **Yêu cầu báo giá đã được gửi thành công!**\n\nThông tin tài khoản đăng nhập của anh/chị:\n- **Khách hàng**: {$name}\n- **Số điện thoại**: {$phoneNum}\n\nNhân viên kinh doanh sẽ liên hệ lại với anh/chị để gửi báo giá chi tiết trong vòng 15-30 phút ạ!",
-                                'action' => 'quote_success',
-                                'suggestions' => $this->getDefaultSuggestions()
-                            ];
-                        }
-                    } else {
-                        $_SESSION['ai_chat_state'] = 'waiting_for_quote_phone';
-                        $_SESSION['ai_quote_data'] = [
-                            'product' => $matchedProduct['name'],
-                            'quantity' => $quantity,
-                            'name' => $name
-                        ];
-                        return [
-                            'message' => "Dạ, em sẵn sàng hỗ trợ tạo phiếu báo giá nhanh cho sản phẩm **{$matchedProduct['name']}** với số lượng **{$quantity}**.\n\n👉 *Chào anh/chị {$name}, tài khoản của anh/chị chưa cập nhật Số điện thoại. Xin vui lòng cung cấp Số điện thoại liên hệ để gửi bảng báo giá ạ.*",
-                            'action' => 'quote_waiting_phone',
-                            'suggestions' => []
-                        ];
-                    }
-                }
-
-                $_SESSION['ai_chat_state'] = 'waiting_for_quote_name';
-                $_SESSION['ai_quote_data'] = [
-                    'product' => $matchedProduct['name'],
-                    'quantity' => $quantity
-                ];
-
+                $price = $matchedProduct['price'] ?: 'Liên hệ';
+                
                 return [
-                    'message' => "Dạ, em sẵn sàng hỗ trợ tạo phiếu báo giá nhanh cho sản phẩm **{$matchedProduct['name']}** với số lượng **{$quantity}**. \n\n👉 Xin hỏi anh/chị **tên là gì** để em ghi nhận thông tin ạ?",
-                    'action' => 'start_quote',
-                    'suggestions' => []
+                    'message' => "Dạ, sản phẩm **{$matchedProduct['name']}** hiện đang có giá: **{$price}**.\n\nĐể đặt mua trực tiếp hoặc cần hỗ trợ sỉ số lượng lớn, anh/chị vui lòng nhắn tin qua [Zalo: 0976.828.171](https://zalo.me/0976828171) hoặc gọi ngay Hotline **0976.828.171** để được hỗ trợ chốt đơn nhanh nhất ạ!",
+                    'action' => 'contact_success',
+                    'suggestions' => ['Gọi điện 0976.828.171', 'Xem sản phẩm khác']
                 ];
             }
         }
@@ -964,9 +805,8 @@ QUY TẮC PHẢN HỒI:
 }
 
 LƯU Ý Ý ĐỊNH HÀNH ĐỘNG (ACTION):
-- Nếu khách bày tỏ muốn mua một sản phẩm cụ thể (ví dụ: 'tôi muốn mua 20 bao Tăng Lực X3' hoặc 'báo giá cho tôi 5 bao vi sinh bio-active'): hãy đặt \"action\" là \"create_quote\", điền tên sản phẩm chính xác và số lượng vào \"action_data\".
-- Nếu khách muốn gặp nhân viên hoặc hỏi những thông tin ngoài chuyên môn nông nghiệp/hóa chất mà bạn không biết trả lời: hãy đặt \"action\" là \"create_contact\", trong phần \"message\" hướng dẫn khách hàng để lại thông tin liên lạc.
-- Khi khách hàng đã đăng nhập và có đầy đủ thông tin (Tên và Số điện thoại), nếu khách yêu cầu báo giá hoặc hỗ trợ trực tiếp, hãy chào khách hàng bằng tên của họ (ví dụ: 'Chào anh/chị [Tên]'), báo là hệ thống đã nhận thông tin và sẽ lập phiếu trực tiếp bằng tài khoản của họ luôn chứ không cần hỏi lại tên/SĐT nữa.";
+- Nếu khách bày tỏ muốn mua hoặc báo giá một sản phẩm cụ thể: hãy đặt \"action\" là \"create_quote\", điền tên sản phẩm chính xác vào \"action_data\".
+- Nếu khách muốn gặp nhân viên hoặc hỏi những thông tin ngoài chuyên môn nông nghiệp/hóa chất mà bạn không biết trả lời: hãy đặt \"action\" là \"create_contact\", trong phần \"message\" hướng dẫn khách hàng gọi Hotline 0976.828.171.";
 
         return $context;
     }

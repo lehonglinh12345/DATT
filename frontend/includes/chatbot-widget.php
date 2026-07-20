@@ -3,7 +3,7 @@
     
     <!-- Chatbox Welcome Bubble -->
     <div class="chat-welcome-bubble" id="aiChatWelcomeBubble" style="display: none;">
-        <span class="welcome-text">Trò chuyện cùng Ngọc Ánh nhé!👋</span>
+        <span class="welcome-text">Trò chuyện cùng Ngọc Ánh nhé!</span>
         <button type="button" id="aiChatWelcomeClose" class="welcome-close-btn" aria-label="Đóng gợi ý">&times;</button>
     </div>
 
@@ -83,21 +83,7 @@
             </div>
         </div>
 
-        <!-- Typing Indicator -->
-        <div class="chatbot-typing-indicator" id="aiChatbotTyping" style="display: none;">
-            <div class="chatbot-message chatbot-message-assistant">
-                <div class="message-avatar">
-                    <img src="images/logo.jpg" alt="Trợ lý">
-                </div>
-                <div class="message-content">
-                    <div class="message-bubble typing-bubble">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Suggestions Area -->
         <div class="chatbot-suggestions" id="aiChatbotSuggestions" style="display: none;"></div>

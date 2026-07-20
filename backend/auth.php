@@ -59,6 +59,24 @@ try {
         $database->query("ALTER TABLE `news_articles` ADD CONSTRAINT `fk_news_articles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE");
     }
 
+    // Tự động kiểm tra và thêm cột `avatar` cho bảng `users`
+    $avatar_check = $database->query("SHOW COLUMNS FROM `users` LIKE 'avatar'");
+    if ($avatar_check && $avatar_check->num_rows === 0) {
+        $database->query("ALTER TABLE `users` ADD COLUMN `avatar` VARCHAR(255) DEFAULT NULL AFTER `phone`");
+    }
+
+    // Tự động kiểm tra và thêm cột `cart_data` cho bảng `users` để lưu giỏ hàng
+    $cart_check = $database->query("SHOW COLUMNS FROM `users` LIKE 'cart_data'");
+    if ($cart_check && $cart_check->num_rows === 0) {
+        $database->query("ALTER TABLE `users` ADD COLUMN `cart_data` TEXT DEFAULT NULL AFTER `avatar`");
+    }
+
+    // Tự động kiểm tra và thêm cột `cancel_reason` cho bảng `orders`
+    $cancel_reason_check = $database->query("SHOW COLUMNS FROM `orders` LIKE 'cancel_reason'");
+    if ($cancel_reason_check && $cancel_reason_check->num_rows === 0) {
+        $database->query("ALTER TABLE `orders` ADD COLUMN `cancel_reason` TEXT DEFAULT NULL AFTER `status`");
+    }
+
     $status_check = $database->query("SHOW COLUMNS FROM `news_articles` LIKE 'status'");
     if ($status_check) {
         $row = $status_check->fetch_assoc();
@@ -84,19 +102,90 @@ function auth_is_logged_in(): bool {
 }
 
 /**
+ * Lấy danh sách các trang yêu cầu đăng nhập
+ */
+function auth_get_protected_pages(): array {
+    return [
+        'profile.php',
+        'checkout.php',
+        'cart.php',
+    ];
+}
+
+/**
+ * Sync session cart to database if logged in
+ */
+function auth_sync_cart_to_db(): void {
+    if (auth_is_logged_in() && isset($_SESSION['cart'])) {
+        global $database;
+        $cart_json = json_encode($_SESSION['cart'], JSON_UNESCAPED_UNICODE);
+        db_query("UPDATE users SET cart_data = ? WHERE id = ?", "si", [$cart_json, $_SESSION['user_id']]);
+    }
+}
+
+/**
+ * Restore cart from database on login
+ */
+function auth_restore_cart_from_db(int $user_id): void {
+    global $database;
+    $res = db_query("SELECT cart_data FROM users WHERE id = ?", "i", [$user_id]);
+    if ($res && $res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+        if (!empty($row['cart_data'])) {
+            $db_cart = json_decode($row['cart_data'], true);
+            if (is_array($db_cart)) {
+                if (!isset($_SESSION['cart'])) {
+                    $_SESSION['cart'] = [];
+                }
+                foreach ($db_cart as $pid => $item) {
+                    if (!isset($_SESSION['cart'][$pid])) {
+                        $_SESSION['cart'][$pid] = $item;
+                    } else {
+                        // Merge quantities
+                        $_SESSION['cart'][$pid]['quantity'] += $item['quantity'];
+                    }
+                }
+                // Save the merged cart back to DB
+                $cart_json = json_encode($_SESSION['cart'], JSON_UNESCAPED_UNICODE);
+                db_query("UPDATE users SET cart_data = ? WHERE id = ?", "si", [$cart_json, $user_id]);
+            }
+        } else {
+            if (!empty($_SESSION['cart'])) {
+                $cart_json = json_encode($_SESSION['cart'], JSON_UNESCAPED_UNICODE);
+                db_query("UPDATE users SET cart_data = ? WHERE id = ?", "si", [$cart_json, $user_id]);
+            }
+        }
+    }
+}
+
+/**
  * Get current logged in user details
  */
 function auth_get_user(): ?array {
     if (!auth_is_logged_in()) {
         return null;
     }
+    
+    // Fetch latest info from DB to ensure avatar and details are up to date
+    global $database;
+    $res = $database->query("SELECT * FROM users WHERE id = " . (int)$_SESSION['user_id']);
+    if ($res && $res->num_rows > 0) {
+        $user = $res->fetch_assoc();
+        // Update session
+        $_SESSION['full_name'] = $user['full_name'];
+        $_SESSION['phone'] = $user['phone'];
+        $_SESSION['avatar'] = $user['avatar'];
+        return $user;
+    }
+    
     return [
         'id'        => $_SESSION['user_id'],
         'username'  => $_SESSION['username'],
         'email'     => $_SESSION['email'],
         'full_name' => $_SESSION['full_name'],
         'role'      => $_SESSION['role'],
-        'phone'     => $_SESSION['phone'] ?? ''
+        'phone'     => $_SESSION['phone'] ?? '',
+        'avatar'    => $_SESSION['avatar'] ?? null
     ];
 }
 

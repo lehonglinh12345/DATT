@@ -44,6 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['role'] = $user['role'];
                         $_SESSION['phone'] = $user['phone'];
 
+                        // Restore cart from DB or save current guest cart to DB
+                        auth_restore_cart_from_db($user['id']);
+
                         // Immediately redirect on successful login for snappier UX
                         if ($user['role'] === 'admin') {
                             $target = '../backend/admin/dashboard.php';
@@ -137,7 +140,7 @@ include 'includes/header.php';
 .auth-section {
     padding: 6rem 0;
     background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(226, 232, 240, 0.9) 100%),
-                url('images/hero-bg.jpg') center/cover no-repeat;
+                url('images/about-hero.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;

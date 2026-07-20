@@ -150,7 +150,7 @@ include 'includes/header.php';
                         </tr>
                         <tr>
                             <td>Lĩnh vực chính</td>
-                            <td>Vật tư nông nghiệp, phân bón, chế phẩm sinh học, hóa chất công nghiệp dệt nhuộm, xi mạ, xử lý nước thải.</td>
+                            <td>Vật tư nông nghiệp, phân bón, chế phẩm sinh học.</td>
                         </tr>
                     </table>
                 </div>

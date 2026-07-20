@@ -32,17 +32,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Mật khẩu phải từ 6 ký tự trở lên.';
         } elseif ($password !== $confirm_pw) {
             $error = 'Xác nhận mật khẩu không khớp.';
+        } elseif ($phone !== '' && !preg_match('/^0[35789][0-9]{8}$/', $phone)) {
+            $error = 'Số điện thoại không hợp lệ (phải có 10 chữ số và bắt đầu bằng 0).';
         } else {
-            // Check if username or email already exists
-            $checkUser = db_query("SELECT id FROM users WHERE username = ? OR email = ?", "ss", [$username, $email]);
+            // Check if username, email, or phone already exists
+            $checkUser = db_query("SELECT id, username, email, phone FROM users WHERE username = ? OR email = ? OR (phone = ? AND phone IS NOT NULL)", "sss", [$username, $email, $phone !== '' ? $phone : null]);
             if ($checkUser && $checkUser->num_rows > 0) {
-                $error = 'Tên đăng nhập hoặc Email đã được đăng ký sử dụng.';
+                $row = $checkUser->fetch_assoc();
+                if (strcasecmp($row['username'], $username) === 0) {
+                    $error = 'Tên đăng nhập đã được đăng ký sử dụng.';
+                } elseif (strcasecmp($row['email'], $email) === 0) {
+                    $error = 'Email đã được đăng ký sử dụng.';
+                } else {
+                    $error = 'Số điện thoại đã được đăng ký bởi một tài khoản khác.';
+                }
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $phone_db = $phone === '' ? null : $phone;
                 $insert = db_query(
                     "INSERT INTO users (username, email, password, full_name, phone, role) VALUES (?, ?, ?, ?, ?, 'customer')",
                     "sssss",
-                    [$username, $email, $hashed_password, $full_name, $phone]
+                    [$username, $email, $hashed_password, $full_name, $phone_db]
                 );
 
                 if ($insert) {
@@ -69,14 +79,14 @@ include 'includes/header.php';
             </div>
 
             <?php if (!empty($error)): ?>
-                <div class="auth-alert alert-danger">
+                <div class="auth-alert alert-danger auto-hide-alert" style="transition: opacity 0.5s ease;">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span><?= h($error) ?></span>
                 </div>
             <?php endif; ?>
 
             <?php if (!empty($success)): ?>
-                <div class="auth-alert alert-success">
+                <div class="auth-alert alert-success auto-hide-alert" style="transition: opacity 0.5s ease;">
                     <i class="fa-solid fa-circle-check"></i>
                     <span><?= h($success) ?></span>
                 </div>
@@ -159,7 +169,7 @@ include 'includes/header.php';
 .auth-section {
     padding: 6rem 0;
     background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(226, 232, 240, 0.9) 100%),
-                url('images/hero-bg.jpg') center/cover no-repeat;
+                url('images/about-hero.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;

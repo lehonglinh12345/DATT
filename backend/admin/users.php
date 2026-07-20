@@ -75,7 +75,7 @@ $users = db_query("SELECT * FROM users ORDER BY role ASC, id DESC");
         <?php endif; ?>
 
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table responsive-cards-mobile">
                 <thead>
                     <tr>
                         <th style="width: 60px;">ID</th>
@@ -92,20 +92,20 @@ $users = db_query("SELECT * FROM users ORDER BY role ASC, id DESC");
                     <?php if ($users && $users->num_rows > 0): ?>
                         <?php while ($u = $users->fetch_assoc()): ?>
                             <tr>
-                                <td><?= $u['id'] ?></td>
-                                <td style="font-weight: 600;"><code><?= h($u['username']) ?></code></td>
-                                <td><?= h($u['full_name'] ?: '(Chưa cập nhật)') ?></td>
-                                <td><?= h($u['email']) ?></td>
-                                <td><?= h($u['phone'] ?: '-') ?></td>
-                                <td>
+                                <td data-label="ID"><?= $u['id'] ?></td>
+                                <td data-label="Tên đăng nhập" style="font-weight: 600;"><code><?= h($u['username']) ?></code></td>
+                                <td data-label="Họ và tên"><?= h($u['full_name'] ?: '(Chưa cập nhật)') ?></td>
+                                <td data-label="Email"><?= h($u['email']) ?></td>
+                                <td data-label="Số điện thoại"><?= h($u['phone'] ?: '-') ?></td>
+                                <td data-label="Vai trò">
                                     <?php if ($u['role'] === 'admin'): ?>
                                         <span class="badge badge-admin"><i class="fa-solid fa-user-shield"></i> Admin</span>
                                     <?php else: ?>
                                         <span class="badge badge-customer"><i class="fa-solid fa-user"></i> Khách hàng</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= date('d/m/Y H:i', strtotime($u['created_at'])) ?></td>
-                                <td>
+                                <td data-label="Ngày đăng ký"><?= date('d/m/Y H:i', strtotime($u['created_at'])) ?></td>
+                                <td data-label="Thay đổi vai trò / Tác vụ">
                                     <div class="actions-cell" style="justify-content: center;">
                                         <?php if ($u['id'] !== (int)$_SESSION['user_id']): ?>
                                             <?php if ($u['role'] === 'admin'): ?>

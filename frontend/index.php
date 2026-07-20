@@ -8,7 +8,7 @@ include 'includes/header.php';
 ?>
 
 <!-- Hero Section -->
-<section class="hero">
+<section class="hero" id="sec-home">
     
     <div class="container  hero-grid">
         <div class="hero-content">
@@ -48,7 +48,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Company Introduction Section -->
-<section class="section section-bg-white">
+<section class="section section-bg-white" id="sec-about">
     <div class="container intro-grid">
         <div class="intro-img-wrapper">
             <img src="images/about-hero.jpg" alt="Ngọc Ánh Dương Lab" class="intro-img" loading="lazy">
@@ -84,7 +84,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Featured Products Section -->
-<section class="section section-bg-white">
+<section class="section section-bg-white" id="sec-products">
     <div class="container">
         <div class="text-center">
             <h2 class="section-title">Sản Phẩm Tiêu Biểu</h2>
@@ -92,107 +92,37 @@ include 'includes/header.php';
         </div>
         
         <div class="product-grid home-product-grid">
-            <!-- Product 1 -->
+            <?php
+            // Fetch top 6 featured products
+            $featured_products_res = db_query("SELECT p.*, c.name AS category_name FROM products p JOIN categories c ON p.category_id = c.id ORDER BY p.views DESC, p.id DESC LIMIT 6");
+            if ($featured_products_res && $featured_products_res->num_rows > 0):
+                while ($prod = $featured_products_res->fetch_assoc()):
+            ?>
             <div class="product-card">
                 <div class="prod-img-wrapper">
-                    <img src="images/tang-luc-x3.jpg" alt="Phân bón gốc Tăng lực X3" class="prod-img" loading="lazy">
-                    <span class="prod-badge">Nông Nghiệp</span>
+                    <img src="<?php echo htmlspecialchars($prod['image'] ?: 'images/tang-luc-x3.jpg'); ?>" alt="<?php echo htmlspecialchars($prod['name']); ?>" class="prod-img" loading="lazy">
+                    <?php if (!empty($prod['badge'])): ?>
+                    <span class="prod-badge <?php echo htmlspecialchars($prod['badge_class']); ?>"><?php echo htmlspecialchars($prod['badge']); ?></span>
+                    <?php endif; ?>
                 </div>
                 <div class="prod-body">
-                    <span class="prod-cat">Phân bón gốc</span>
-                    <h3 class="prod-title"><a href="product-detail.php?id=tang-luc-x3">Phân bón gốc Tăng Lực X3 - Phục hồi đất, bật rễ nhanh</a></h3>
-                    <p class="prod-origin">Xuất xứ: <strong>Nhập khẩu</strong></p>
+                    <span class="prod-cat"><?php echo htmlspecialchars($prod['category_name']); ?></span>
+                    <h3 class="prod-title"><a href="product-detail.php?id=<?php echo htmlspecialchars($prod['product_key']); ?>"><?php echo htmlspecialchars($prod['name']); ?></a></h3>
+                    <?php if (!empty($prod['origin'])): ?>
+                    <p class="prod-origin">Xuất xứ: <strong><?php echo htmlspecialchars($prod['origin']); ?></strong></p>
+                    <?php endif; ?>
                     <div class="prod-footer">
-                        <span class="prod-price">Liên hệ báo giá</span>
-                        <a href="product-detail.php?id=tang-luc-x3" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
+                        <span class="prod-price"><?php echo htmlspecialchars($prod['price'] ?: '0đ'); ?></span>
+                        <a href="product-detail.php?id=<?php echo htmlspecialchars($prod['product_key']); ?>" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
                     </div>
                 </div>
             </div>
-            
-            <!-- Product 2 -->
-            <div class="product-card">
-                <div class="prod-img-wrapper">
-                    <img src="images/nuoi-dong.jpg" alt="Phân bón lá Nuôi đòng - Trổ thoát" class="prod-img" loading="lazy">
-                    <span class="prod-badge">Nông Nghiệp</span>
-                </div>
-                <div class="prod-body">
-                    <span class="prod-cat">Phân bón lá</span>
-                    <h3 class="prod-title"><a href="product-detail.php?id=nuoi-dong-tro-thoat">Dưỡng chất lúa Nuôi Đòng - Trổ Thoát cao cấp</a></h3>
-                    <p class="prod-origin">Xuất xứ: <strong>Châu Âu</strong></p>
-                    <div class="prod-footer">
-                        <span class="prod-price">Liên hệ báo giá</span>
-                        <a href="product-detail.php?id=nuoi-dong-tro-thoat" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 3 -->
-            <div class="product-card">
-                <div class="prod-img-wrapper">
-                    <img src="images/bio-prep.jpg" alt="Chế phẩm vi sinh cải tạo đất" class="prod-img" loading="lazy">
-                    <span class="prod-badge badge-bio">Vi Sinh</span>
-                </div>
-                <div class="prod-body">
-                    <span class="prod-cat">CHẾ PHẨM VI SINH, SINH HỌC</span>
-                    <h3 class="prod-title"><a href="product-detail.php?id=vi-sinh-bio-active">Chế phẩm sinh học Bio-Active cải tạo đất sâu</a></h3>
-                    <p class="prod-origin">Xuất xứ: <strong>Nhật Bản</strong></p>
-                    <div class="prod-footer">
-                        <span class="prod-price">Liên hệ báo giá</span>
-                        <a href="product-detail.php?id=vi-sinh-bio-active" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Product 4 -->
-            <div class="product-card">
-                <div class="prod-img-wrapper">
-                    <img src="images/bio-prep.jpg" alt="Chế phẩm nấm đối kháng Trichoderma" class="prod-img" loading="lazy">
-                    <span class="prod-badge badge-bio">Trị Nấm</span>
-                </div>
-                <div class="prod-body">
-                    <span class="prod-cat">PHÒNG TRỪ NẤM HẠI</span>
-                    <h3 class="prod-title"><a href="product-detail.php?id=trichoderma-doi-khang-nam">Chế phẩm nấm đối kháng Trichoderma ngăn ngừa bệnh hại</a></h3>
-                    <p class="prod-origin">Xuất xứ: <strong>Việt Nam</strong></p>
-                    <div class="prod-footer">
-                        <span class="prod-price">Liên hệ báo giá</span>
-                        <a href="product-detail.php?id=trichoderma-doi-khang-nam" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 5 -->
-            <div class="product-card">
-                <div class="prod-img-wrapper">
-                    <img src="images/bio-prep.jpg" alt="Chế phẩm trừ sâu sinh học Neem Oil" class="prod-img" loading="lazy">
-                    <span class="prod-badge badge-bio">Côn Trùng</span>
-                </div>
-                <div class="prod-body">
-                    <span class="prod-cat">PHÒNG TRỪ CÔN TRÙNG, ỐC HẠI</span>
-                    <h3 class="prod-title"><a href="product-detail.php?id=che-pham-tru-sau-sinh-hoc">Chế phẩm trừ sâu sinh học Neem Oil</a></h3>
-                    <p class="prod-origin">Xuất xứ: <strong>Ấn Độ</strong></p>
-                    <div class="prod-footer">
-                        <span class="prod-price">Liên hệ báo giá</span>
-                        <a href="product-detail.php?id=che-pham-tru-sau-sinh-hoc" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 6 -->
-            <div class="product-card">
-                <div class="prod-img-wrapper">
-                    <img src="images/bio-prep.jpg" alt="Chế phẩm vi sinh xử lý đáy ao nuôi" class="prod-img" loading="lazy">
-                    <span class="prod-badge badge-bio">Vi Sinh</span>
-                </div>
-                <div class="prod-body">
-                    <span class="prod-cat">CHẾ PHẨM VI SINH, SINH HỌC</span>
-                    <h3 class="prod-title"><a href="product-detail.php?id=vi-sinh-aquaculture-usa">Chế phẩm vi sinh xử lý đáy ao nuôi (Aquaculture USA)</a></h3>
-                    <p class="prod-origin">Xuất xứ: <strong>Hoa Kỳ</strong></p>
-                    <div class="prod-footer">
-                        <span class="prod-price">Liên hệ báo giá</span>
-                        <a href="product-detail.php?id=vi-sinh-aquaculture-usa" class="btn-detail" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </div>
-                </div>
-            </div>
+            <?php 
+                endwhile;
+            else:
+                echo '<p style="grid-column: 1/-1; text-align: center;">Chưa có sản phẩm nào được cập nhật.</p>';
+            endif;
+            ?>
         </div>
         
         <div class="text-center" style="margin-top: 3.5rem;">
@@ -286,7 +216,7 @@ include 'includes/header.php';
                 <div class="cat-body">
                     <h3>CHẾ PHẨM VI SINH, SINH HỌC</h3>
                     <p>Các dòng chế phẩm vi sinh học công nghệ cao cải tạo đất hữu cơ, kích thích bộ rễ phát triển và tăng sức đề kháng tự nhiên.</p>
-                    <a href="products.php?category=che-pham-vi-sinh-sinh-hoc" class="cat-link">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
+                    <a href="products.php?category=che-pham-vi-sinh-sinh-hoc" class="cat-link mt-auto">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
                 </div>
             </div>
             
@@ -301,7 +231,7 @@ include 'includes/header.php';
                 <div class="cat-body">
                     <h3>PHÂN BÓN GỐC</h3>
                     <p>Dòng phân bón gốc cao cấp chuyên phục hồi đất bạc màu, kích thích đẻ nhánh và giúp cây sinh trưởng khỏe mạnh từ gốc rễ.</p>
-                    <a href="products.php?category=phan-bon-goc" class="cat-link">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
+                    <a href="products.php?category=phan-bon-goc-la" class="cat-link mt-auto">Xem sản phẩm <i class="fa-solid fa-arrow-right-long ms-2"></i></a>
                 </div>
             </div>
             
@@ -316,7 +246,7 @@ include 'includes/header.php';
                 <div class="cat-body">
                     <h3>PHÂN BÓN LÁ</h3>
                     <p>Phân bón lá sinh học chuyên dùng trong giai đoạn làm đòng, dưỡng bông, nuôi dưỡng hoa trái trổ thoát cực mạnh, đạt năng suất cao.</p>
-                    <a href="products.php?category=phan-bon-la" class="cat-link">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
+                    <a href="products.php?category=phan-bon-goc-la" class="cat-link mt-auto">Xem sản phẩm <i class="fa-solid fa-arrow-right-long ms-2"></i></a>
                 </div>
             </div>
 
@@ -331,7 +261,7 @@ include 'includes/header.php';
                 <div class="cat-body">
                     <h3>PHÒNG TRỪ CÔN TRÙNG, ỐC HẠI</h3>
                     <p>Các giải pháp sinh học an toàn phòng trừ và diệt côn trùng, bọ trĩ, nhện đỏ, rệp sáp và ốc bươu vàng phá hoại nông sản.</p>
-                    <a href="products.php?category=phong-tru-con-trung-oc-hai" class="cat-link">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
+                    <a href="products.php?category=phong-tru-con-trung-oc-hai" class="cat-link mt-auto">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
                 </div>
             </div>
 
@@ -346,7 +276,7 @@ include 'includes/header.php';
                 <div class="cat-body">
                     <h3>PHÒNG TRỪ NẤM HẠI</h3>
                     <p>Chế phẩm sinh học đối kháng mạnh mẽ ngăn ngừa và tiêu diệt các nấm bệnh thối rễ, lở cổ rễ, vàng lá chín sớm.</p>
-                    <a href="products.php?category=phong-tru-nam-hai" class="cat-link">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
+                    <a href="products.php?category=phong-tru-nam-hai" class="cat-link mt-auto">Xem sản phẩm <i class="fa-solid fa-arrow-right-long"></i></a>
                 </div>
             </div>
         </div>
@@ -402,7 +332,7 @@ include 'includes/header.php';
     </div>
 </section>
 <!-- News & Updates Section -->
-<section class="section section-bg-white" style="border-top: 1px solid var(--color-border);">
+<section class="section section-bg-white" id="sec-news" style="border-top: 1px solid var(--color-border);">
     <div class="container">
         <div class="text-center">
             <h2 class="section-title">Tin Tức & Cập Nhật</h2>
@@ -459,7 +389,7 @@ include 'includes/header.php';
 
 
 <!-- Call to Action Banner Section -->
-<section class="section" style="padding-bottom: 0;">
+<section class="section" id="sec-contact" style="padding-bottom: 0;">
     <div class="container">
         <div class="cta-banner">
             <div class="cta-grid">
@@ -539,6 +469,40 @@ include 'includes/header.php';
         if (e.target === popup) {
             popup.classList.remove("active");
         }
+    });
+
+    // Scrollspy logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const sections = [
+            { id: 'sec-home', navHref: 'index.php' },
+            { id: 'sec-about', navHref: 'about.php' },
+            { id: 'sec-products', navHref: 'products.php' },
+            { id: 'sec-news', navHref: 'news.php' },
+            { id: 'sec-contact', navHref: 'contact.php' }
+        ];
+
+        const navLinks = document.querySelectorAll('.nav-menu a');
+
+        window.addEventListener('scroll', () => {
+            let current = 'index.php';
+            sections.forEach(sec => {
+                const section = document.getElementById(sec.id);
+                if (section) {
+                    const sectionTop = section.offsetTop;
+                    // Offset for header height and some padding
+                    if (window.scrollY >= sectionTop - 200) {
+                        current = sec.navHref;
+                    }
+                }
+            });
+
+            navLinks.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === current) {
+                    a.classList.add('active');
+                }
+            });
+        });
     });
 </script>
 <div style="height: 5rem;"></div>

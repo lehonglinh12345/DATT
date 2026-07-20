@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatbotForm = document.getElementById("aiChatbotForm");
     const chatbotInput = document.getElementById("aiChatbotInput");
     const chatbotSend = document.getElementById("aiChatbotSend");
-    const chatbotTyping = document.getElementById("aiChatbotTyping");
     const chatbotSuggestions = document.getElementById("aiChatbotSuggestions");
     const welcomeBubble = document.getElementById("aiChatWelcomeBubble");
     const welcomeClose = document.getElementById("aiChatWelcomeClose");
@@ -25,6 +24,48 @@ document.addEventListener("DOMContentLoaded", function () {
     const newChatBtn = document.getElementById("aiChatbotNewChat");
 
     if (!chatbotWidget || !chatbotToggle) return;
+
+    // Kéo thả (Drag to scroll) cho vùng gợi ý trên PC
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    let isDragging = false;
+
+    if (chatbotSuggestions) {
+        chatbotSuggestions.style.cursor = 'grab';
+        
+        chatbotSuggestions.addEventListener('mousedown', (e) => {
+            isDown = true;
+            isDragging = false;
+            chatbotSuggestions.style.cursor = 'grabbing';
+            startX = e.pageX - chatbotSuggestions.offsetLeft;
+            scrollLeft = chatbotSuggestions.scrollLeft;
+        });
+        chatbotSuggestions.addEventListener('mouseleave', () => {
+            isDown = false;
+            chatbotSuggestions.style.cursor = 'grab';
+        });
+        chatbotSuggestions.addEventListener('mouseup', () => {
+            isDown = false;
+            chatbotSuggestions.style.cursor = 'grab';
+        });
+        chatbotSuggestions.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            const x = e.pageX - chatbotSuggestions.offsetLeft;
+            const walk = (x - startX) * 2; // Tốc độ cuộn
+            if (Math.abs(x - startX) > 5) {
+                isDragging = true;
+            }
+            chatbotSuggestions.scrollLeft = scrollLeft - walk;
+        });
+        
+        chatbotSuggestions.addEventListener('click', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true); // Use capture phase to intercept before chip click
+    }
 
     // Trạng thái ban đầu
     let isHistoryLoaded = false;
@@ -191,20 +232,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 activeSessionId = ''; // Reset activeSessionId so next messages creates a new session title
                 chatbotMessages.innerHTML = '';
                 
-                // Add first greeting with welcome text
-                chatbotMessages.innerHTML = `
-                    <div class="chatbot-message chatbot-message-assistant">
-                        <div class="message-avatar">
-                            <img src="images/logo.jpg" alt="Trợ lý">
-                        </div>
-                        <div class="message-content">
-                            <div class="message-bubble">
-                                Cuộc trò chuyện mới đã bắt đầu! Em là **Trợ lý Ngọc Ánh Dương** 🤖. Em có thể giúp gì cho anh/chị hôm nay về nông nghiệp và hóa chất công nghiệp ạ?
-                            </div>
-                            <div class="message-time">Vừa xong</div>
-                        </div>
-                    </div>
-                `;
+                const welcomeText = "Cuộc trò chuyện mới đã bắt đầu! Em là **Trợ lý Ngọc Ánh Dương** 🤖. Em có thể giúp gì cho anh/chị hôm nay về nông nghiệp và hóa chất công nghiệp ạ?";
+                appendMessage("assistant", welcomeText, "Vừa xong", true);
                 renderSuggestions(data.suggestions);
                 
                 // Fetch the newly generated session ID
@@ -232,21 +261,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function appendGreetingMessage() {
-        chatbotMessages.innerHTML = `
-            <div class="chatbot-message chatbot-message-assistant">
-                <div class="message-avatar">
-                    <img src="images/logo.jpg" alt="Trợ lý">
-                </div>
-                <div class="message-content">
-                    <div class="message-bubble">
-                        Xin chào! Em là **Trợ lý Ngọc Ánh Dương** 🤖 - tư vấn viên ảo về chế phẩm vi sinh, sinh học, phân bón và giải pháp bảo vệ cây trồng.
-                        <br><br>
-                        Anh/chị cần em hỗ trợ tư vấn sản phẩm, tìm kiếm thông tin hay kỹ thuật gieo trồng nào hôm nay ạ?
-                    </div>
-                    <div class="message-time">Vừa xong</div>
-                </div>
-            </div>
-        `;
+        const welcomeText = "Xin chào! Em là **Trợ lý Ngọc Ánh Dương** 🤖 - tư vấn viên ảo về chế phẩm vi sinh, sinh học, phân bón và giải pháp bảo vệ cây trồng.\n\nAnh/chị cần em hỗ trợ tư vấn sản phẩm, tìm kiếm thông tin hay kỹ thuật gieo trồng nào hôm nay ạ?";
+        appendMessage("assistant", welcomeText, "Vừa xong", true);
     }
 
     // Định dạng Text từ Markdown đơn giản (Bôi đậm, Liên kết)
@@ -284,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Thêm tin nhắn mới vào khung chat
-    function appendMessage(role, messageText, timestamp = "Vừa xong") {
+    function appendMessage(role, messageText, timestamp = "Vừa xong", animate = false) {
         const messageDiv = document.createElement("div");
         messageDiv.className = `chatbot-message chatbot-message-${role === "user" ? "user" : "assistant"}`;
         
@@ -297,20 +313,50 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="message-time">${timestamp}</div>
                 </div>
             `;
+            chatbotMessages.appendChild(messageDiv);
+            scrollToBottom();
         } else {
             messageDiv.innerHTML = `
                 <div class="message-avatar">
                     <img src="images/logo.jpg" alt="Trợ lý">
                 </div>
                 <div class="message-content">
-                    <div class="message-bubble">${formattedText}</div>
+                    <div class="message-bubble"></div>
                     <div class="message-time">${timestamp}</div>
                 </div>
             `;
+            chatbotMessages.appendChild(messageDiv);
+            
+            const bubble = messageDiv.querySelector('.message-bubble');
+            
+            if (animate) {
+                let i = 0;
+                let isTag = false;
+                function type() {
+                    if (i < formattedText.length) {
+                        let char = formattedText.charAt(i);
+                        if (char === '<') isTag = true;
+                        if (char === '>') isTag = false;
+                        i++;
+                        if (isTag) {
+                            type(); // skip delay for html tags
+                        } else {
+                            bubble.innerHTML = formattedText.substring(0, i);
+                            scrollToBottom();
+                            // Increase typing speed for better UX
+                            setTimeout(type, 15);
+                        }
+                    } else {
+                        bubble.innerHTML = formattedText;
+                        scrollToBottom();
+                    }
+                }
+                type();
+            } else {
+                bubble.innerHTML = formattedText;
+                scrollToBottom();
+            }
         }
-
-        chatbotMessages.appendChild(messageDiv);
-        scrollToBottom();
     }
 
     // Hiển thị các nút gợi ý hỏi nhanh (chips)
@@ -420,7 +466,23 @@ document.addEventListener("DOMContentLoaded", function () {
         chatbotInput.value = "";
 
         // Hiển thị hiệu ứng gõ phím
-        chatbotTyping.style.display = "block";
+        const typingId = "typing-" + Date.now();
+        const typingDiv = document.createElement("div");
+        typingDiv.id = typingId;
+        typingDiv.className = "chatbot-message chatbot-message-assistant";
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <img src="images/logo.jpg" alt="Trợ lý">
+            </div>
+            <div class="message-content">
+                <div class="message-bubble typing-bubble">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        `;
+        chatbotMessages.appendChild(typingDiv);
         scrollToBottom();
 
         // Khóa input trong lúc chờ phản hồi
@@ -442,21 +504,27 @@ document.addEventListener("DOMContentLoaded", function () {
             return response.json();
         })
         .then(data => {
-            // Ẩn hiệu ứng gõ phím
-            chatbotTyping.style.display = "none";
+            // Xóa hiệu ứng gõ phím
+            const typingIndicator = document.getElementById(typingId);
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
 
             if (data.success && data.reply) {
-                appendMessage("assistant", data.reply);
+                appendMessage("assistant", data.reply, "Vừa xong", true);
                 // Hiển thị mảng gợi ý tiếp theo do AI sinh ra
                 renderSuggestions(data.suggestions);
             } else {
-                appendMessage("assistant", "Dạ, em gặp trục trặc khi xử lý yêu cầu. Bạn vui lòng thử lại hoặc gọi Hotline **0976.828.171** nhé!");
+                appendMessage("assistant", "Dạ, em gặp trục trặc khi xử lý yêu cầu. Bạn vui lòng thử lại hoặc gọi Hotline **0976.828.171** nhé!", "Vừa xong", true);
             }
         })
         .catch(error => {
             console.error("Lỗi gửi tin nhắn:", error);
-            chatbotTyping.style.display = "none";
-            appendMessage("assistant", "Kết nối mạng bị gián đoạn. Bạn vui lòng tải lại trang hoặc liên hệ Zalo **0976828171**.");
+            const typingIndicator = document.getElementById(typingId);
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            appendMessage("assistant", "Kết nối mạng bị gián đoạn. Bạn vui lòng tải lại trang hoặc liên hệ Zalo **0976828171**.", "Vừa xong", true);
         })
         .finally(() => {
             // Mở khóa input

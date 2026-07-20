@@ -69,7 +69,10 @@ if ($action === 'view' && $id > 0):
     <div class="admin-card">
         <div class="admin-card-header">
             <h3><i class="fa-solid fa-file-invoice-dollar"></i> Chi Tiết Yêu Cầu Báo Giá</h3>
-            <a href="quotes.php" class="btn btn-outline btn-sm" style="border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách</a>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="print_quote.php?id=<?= $quote['id'] ?>" target="_blank" class="btn btn-primary btn-sm" style="border-radius: 8px; background-color: #d98a2b;"><i class="fa-solid fa-print"></i> Xuất / In Hóa Đơn</a>
+                <a href="quotes.php" class="btn btn-outline btn-sm" style="border-radius: 8px;"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách</a>
+            </div>
         </div>
         <div class="admin-card-body">
             <div class="message-detail-grid">
@@ -82,7 +85,7 @@ if ($action === 'view' && $id > 0):
                         <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--color-admin-text-muted);">
                             <span><i class="fa-solid fa-barcode"></i> Mã sản phẩm: <strong><?= h($quote['product_key'] ?: 'Không có') ?></strong></span>
                             <?php if (!empty($quote['product_link'])): ?>
-                                <span><i class="fa-solid fa-link"></i> Đường dẫn: <a href="<?= h($quote['product_link']) ?>" target="_blank" style="color: var(--color-secondary); text-decoration: underline;"><?= h($quote['product_link']) ?></a></span>
+                                <span><i class="fa-solid fa-link"></i> Đường dẫn: <a href="../../frontend/<?= h($quote['product_link']) ?>" target="_blank" style="color: var(--color-secondary); text-decoration: underline;"><?= h($quote['product_link']) ?></a></span>
                             <?php endif; ?>
                             <span><i class="fa-solid fa-clock"></i> Ngày gửi: <?= date('d/m/Y H:i:s', strtotime($quote['created_at'])) ?></span>
                         </div>
